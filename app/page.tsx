@@ -49,10 +49,10 @@ export default function CallsignLookup() {
         <section className="py-16 md:py-24 bg-gradient-to-b from-card to-background">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4 text-balance">
-              Amateur Radio Callsign Lookup
+              Callsign Lookup
             </h2>
             <p className="text-muted-foreground text-lg md:text-xl mb-10 max-w-2xl mx-auto text-pretty">
-              Search for any amateur radio operator worldwide. Get license details, location, and contact information instantly.
+              Search for any amateur radio or GMRS operator. Get license details, location, and contact information instantly.
             </p>
 
             {/* Search Bar */}
@@ -83,19 +83,20 @@ export default function CallsignLookup() {
               What You Can Find
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="bg-card border-border hover:shadow-lg transition-shadow">
+              <Card className="bg-card border-border hover:shadow-lg hover:shadow-primary/10 transition-shadow">
                 <CardHeader>
-                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
+                  <div className="h-12 w-12 rounded-lg bg-primary/20 flex items-center justify-center mb-2">
                     <Award className="h-6 w-6 text-primary" />
                   </div>
                   <CardTitle className="text-lg">License Class</CardTitle>
                   <CardDescription>
                     View the operator&apos;s license class and privileges
                   </CardDescription>
+                  <span className="text-xs text-primary font-medium mt-2 inline-block">Amateur Radio Only</span>
                 </CardHeader>
               </Card>
 
-              <Card className="bg-card border-border hover:shadow-lg transition-shadow">
+              <Card className="bg-card border-border hover:shadow-lg hover:shadow-accent/10 transition-shadow">
                 <CardHeader>
                   <div className="h-12 w-12 rounded-lg bg-accent/20 flex items-center justify-center mb-2">
                     <MapPin className="h-6 w-6 text-accent" />
@@ -104,22 +105,24 @@ export default function CallsignLookup() {
                   <CardDescription>
                     Find the operator&apos;s address and grid square
                   </CardDescription>
+                  <span className="text-xs text-accent font-medium mt-2 inline-block">Amateur Radio + GMRS</span>
                 </CardHeader>
               </Card>
 
-              <Card className="bg-card border-border hover:shadow-lg transition-shadow">
+              <Card className="bg-card border-border hover:shadow-lg hover:shadow-primary/10 transition-shadow">
                 <CardHeader>
-                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
+                  <div className="h-12 w-12 rounded-lg bg-primary/20 flex items-center justify-center mb-2">
                     <Calendar className="h-6 w-6 text-primary" />
                   </div>
                   <CardTitle className="text-lg">License Dates</CardTitle>
                   <CardDescription>
                     Check issue date and expiration information
                   </CardDescription>
+                  <span className="text-xs text-accent font-medium mt-2 inline-block">Amateur Radio + GMRS</span>
                 </CardHeader>
               </Card>
 
-              <Card className="bg-card border-border hover:shadow-lg transition-shadow">
+              <Card className="bg-card border-border hover:shadow-lg hover:shadow-accent/10 transition-shadow">
                 <CardHeader>
                   <div className="h-12 w-12 rounded-lg bg-accent/20 flex items-center justify-center mb-2">
                     <Globe className="h-6 w-6 text-accent" />
@@ -128,6 +131,7 @@ export default function CallsignLookup() {
                   <CardDescription>
                     Search operators from around the globe
                   </CardDescription>
+                  <span className="text-xs text-accent font-medium mt-2 inline-block">Amateur Radio + GMRS</span>
                 </CardHeader>
               </Card>
             </div>
