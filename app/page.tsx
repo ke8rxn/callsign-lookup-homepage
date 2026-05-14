@@ -1,13 +1,30 @@
 "use client"
 
-import { useState } from "react"
-import { Search, Radio, MapPin, Calendar, Award, Globe } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Search, Radio, MapPin, Calendar, Award, Globe, Moon, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function CallsignLookup() {
   const [callsign, setCallsign] = useState("")
+  const [isDark, setIsDark] = useState(true)
+
+  useEffect(() => {
+    // Check initial theme from document
+    const isDarkMode = document.documentElement.classList.contains("dark")
+    setIsDark(isDarkMode)
+  }, [])
+
+  const toggleTheme = () => {
+    const newIsDark = !isDark
+    setIsDark(newIsDark)
+    if (newIsDark) {
+      document.documentElement.classList.add("dark")
+    } else {
+      document.documentElement.classList.remove("dark")
+    }
+  }
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,16 +46,24 @@ export default function CallsignLookup() {
               <p className="text-xs text-muted-foreground">Callsign Lookup</p>
             </div>
           </div>
-          <nav className="hidden md:flex items-center gap-6">
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <nav className="flex items-center gap-6">
+            <a href="#" className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors">
               Home
             </a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#" className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors">
               About
             </a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#" className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors">
               API
             </a>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
           </nav>
         </div>
       </header>
