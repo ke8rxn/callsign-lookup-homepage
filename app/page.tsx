@@ -1,18 +1,52 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Search, Radio, MapPin, Calendar, Award, Moon, Sun } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { Search, Radio, MapPin, Calendar, Award, Moon, Sun, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+
+interface CallsignRecord {
+  callsign: string
+  callsign_lc: string
+  full_name: string
+  full_address: string
+  service: string
+  frn: string
+}
 
 export default function CallsignLookup() {
   const [callsign, setCallsign] = useState("")
   const [isDark, setIsDark] = useState(true)
+  const [index, setIndex] = useState<CallsignRecord[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSearching, setIsSearching] = useState(false)
+  const [searchResult, setSearchResult] = useState<CallsignRecord | null>(null)
+  const [hasSearched, setHasSearched] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const isDarkMode = document.documentElement.classList.contains("dark")
     setIsDark(isDarkMode)
+  }, [])
+
+  // Load the index on mount
+  useEffect(() => {
+    async function loadIndex() {
+      try {
+        const response = await fetch("https://ke8rxnwx.net/data/fcc-index.json")
+        if (!response.ok) {
+          throw new Error(`Failed to load index: ${response.statusText}`)
+        }
+        const data = await response.json()
+        setIndex(data)
+        setIsLoading(false)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load callsign index")
+        setIsLoading(false)
+      }
+    }
+    loadIndex()
   }, [])
 
   const toggleTheme = () => {
@@ -25,11 +59,20 @@ export default function CallsignLookup() {
     }
   }
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = useCallback((e: React.FormEvent) => {
     e.preventDefault()
-    if (!callsign.trim()) return
-    // TODO: Implement search functionality
-  }
+    if (!callsign.trim() || isLoading) return
+
+    setIsSearching(true)
+    setHasSearched(true)
+
+    // Search the index for matching callsign
+    const searchTerm = callsign.trim().toLowerCase()
+    const result = index.find((record) => record.callsign_lc === searchTerm)
+
+    setSearchResult(result || null)
+    setIsSearching(false)
+  }, [callsign, index, isLoading])
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -79,6 +122,20 @@ export default function CallsignLookup() {
               Search for any amateur radio or GMRS operator. Get license details, location, and contact information instantly.
             </p>
 
+            {/* Loading Status */}
+            {isLoading && (
+              <div className="flex items-center justify-center gap-2 text-muted-foreground mb-6">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm">Loading callsign index...</span>
+              </div>
+            )}
+
+            {error && (
+              <div className="max-w-xl mx-auto mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
+                {error}
+              </div>
+            )}
+
             {/* Search Bar */}
             <form onSubmit={handleSearch} className="max-w-xl mx-auto">
               <div className="flex gap-2">
@@ -90,13 +147,82 @@ export default function CallsignLookup() {
                     value={callsign}
                     onChange={(e) => setCallsign(e.target.value.toUpperCase())}
                     className="pl-10 h-12 text-lg bg-card border-border"
+                    disabled={isLoading}
                   />
                 </div>
-                <Button type="submit" size="lg" className="h-12 px-8">
-                  Search
+                <Button type="submit" size="lg" className="h-12 px-8" disabled={isLoading || isSearching}>
+                  {isSearching ? <Loader2 className="h-5 w-5 animate-spin" /> : "Search"}
                 </Button>
               </div>
             </form>
+
+            {/* Search Results */}
+            {hasSearched && !isSearching && (
+              <div className="max-w-2xl mx-auto mt-8">
+                {searchResult ? (
+                  <Card className="bg-card border-border text-left">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-2xl text-primary">{searchResult.callsign}</CardTitle>
+                          <CardDescription className="text-lg">{searchResult.full_name || "Name not available"}</CardDescription>
+                        </div>
+                        <div className="h-12 px-4 rounded-lg bg-accent/20 flex items-center justify-center">
+                          <span className="text-accent font-bold text-sm">{searchResult.service}</span>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Location */}
+                        <div className="flex items-start gap-3">
+                          <div className="h-8 w-8 rounded-lg bg-accent/20 flex items-center justify-center shrink-0">
+                            <MapPin className="h-4 w-4 text-accent" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Location</p>
+                            <p className="text-foreground">
+                              {searchResult.full_address && searchResult.full_address !== ", ," 
+                                ? searchResult.full_address 
+                                : "Address not available"}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* FRN */}
+                        <div className="flex items-start gap-3">
+                          <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                            <Award className="h-4 w-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">FRN</p>
+                            <p className="text-foreground">{searchResult.frn || "Not available"}</p>
+                          </div>
+                        </div>
+
+                        {/* Service Type */}
+                        <div className="flex items-start gap-3">
+                          <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                            <Radio className="h-4 w-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Service Type</p>
+                            <p className="text-foreground">{searchResult.service}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="bg-card border-border">
+                    <CardContent className="py-8 text-center">
+                      <p className="text-muted-foreground">No results found for &quot;{callsign}&quot;</p>
+                      <p className="text-sm text-muted-foreground mt-2">Make sure you entered a valid US callsign</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
           </div>
         </section>
 
