@@ -18,8 +18,6 @@ interface CallsignRecord {
 export default function CallsignLookup() {
   const [callsign, setCallsign] = useState("")
   const [isDark, setIsDark] = useState(true)
-  const [index, setIndex] = useState<CallsignRecord[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const [isSearching, setIsSearching] = useState(false)
   const [searchResult, setSearchResult] = useState<CallsignRecord | null>(null)
   const [hasSearched, setHasSearched] = useState(false)
@@ -28,28 +26,6 @@ export default function CallsignLookup() {
   useEffect(() => {
     const isDarkMode = document.documentElement.classList.contains("dark")
     setIsDark(isDarkMode)
-  }, [])
-
-  // Load the index on mount
-  useEffect(() => {
-    async function loadIndex() {
-      try {
-        const response = await fetch("/api/fcc-index")
-        if (!response.ok) {
-          throw new Error(`Failed to load index: ${response.statusText}`)
-        }
-        const data = await response.json()
-        if (data.error) {
-          throw new Error(data.error)
-        }
-        setIndex(data)
-        setIsLoading(false)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load callsign index")
-        setIsLoading(false)
-      }
-    }
-    loadIndex()
   }, [])
 
   const toggleTheme = () => {
@@ -62,20 +38,33 @@ export default function CallsignLookup() {
     }
   }
 
-  const handleSearch = useCallback((e: React.FormEvent) => {
+  const handleSearch = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!callsign.trim() || isLoading) return
+    if (!callsign.trim()) return
 
     setIsSearching(true)
     setHasSearched(true)
+    setError(null)
 
-    // Search the index for matching callsign
-    const searchTerm = callsign.trim().toLowerCase()
-    const result = index.find((record) => record.callsign_lc === searchTerm)
-
-    setSearchResult(result || null)
-    setIsSearching(false)
-  }, [callsign, index, isLoading])
+    try {
+      const response = await fetch(`/api/fcc-search?callsign=${encodeURIComponent(callsign.trim())}`)
+      const data = await response.json()
+      
+      if (response.ok) {
+        setSearchResult(data)
+      } else if (response.status === 404) {
+        setSearchResult(null)
+      } else {
+        setError(data.error || "Search failed")
+        setSearchResult(null)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Search failed")
+      setSearchResult(null)
+    } finally {
+      setIsSearching(false)
+    }
+  }, [callsign])
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -125,14 +114,6 @@ export default function CallsignLookup() {
               Search for any amateur radio or GMRS operator. Get license details, location, and contact information instantly.
             </p>
 
-            {/* Loading Status */}
-            {isLoading && (
-              <div className="flex items-center justify-center gap-2 text-muted-foreground mb-6">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-sm">Loading callsign index...</span>
-              </div>
-            )}
-
             {error && (
               <div className="max-w-xl mx-auto mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
                 {error}
@@ -150,10 +131,9 @@ export default function CallsignLookup() {
                     value={callsign}
                     onChange={(e) => setCallsign(e.target.value.toUpperCase())}
                     className="pl-10 h-12 text-lg bg-card border-border"
-                    disabled={isLoading}
                   />
                 </div>
-                <Button type="submit" size="lg" className="h-12 px-8" disabled={isLoading || isSearching}>
+                <Button type="submit" size="lg" className="h-12 px-8" disabled={isSearching}>
                   {isSearching ? <Loader2 className="h-5 w-5 animate-spin" /> : "Search"}
                 </Button>
               </div>
