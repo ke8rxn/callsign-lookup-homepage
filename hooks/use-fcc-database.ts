@@ -36,8 +36,9 @@ export function useFccDatabase() {
         setLoadingProgress(10)
 
         // Initialize SQL.js with the WASM file from CDN
+        // Using the full WASM URL to avoid sync/async fetching issues
         const SQL = await initSqlJs({
-          locateFile: (file) => `https://sql.js.org/dist/${file}`,
+          locateFile: () => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.11.0/sql-wasm.wasm`,
         })
         setLoadingProgress(30)
 
