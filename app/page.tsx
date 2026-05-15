@@ -34,14 +34,18 @@ export default function CallsignLookup() {
   useEffect(() => {
     async function loadIndex() {
       try {
+        console.log("[v0] Starting to fetch FCC index...")
         const response = await fetch("https://ke8rxnwx.net/data/fcc-index.json")
+        console.log("[v0] Fetch response status:", response.status, response.statusText)
         if (!response.ok) {
           throw new Error(`Failed to load index: ${response.statusText}`)
         }
         const data = await response.json()
+        console.log("[v0] Loaded index with", data.length, "records")
         setIndex(data)
         setIsLoading(false)
       } catch (err) {
+        console.error("[v0] Error loading index:", err)
         setError(err instanceof Error ? err.message : "Failed to load callsign index")
         setIsLoading(false)
       }
