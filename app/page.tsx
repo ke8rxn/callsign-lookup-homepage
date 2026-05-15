@@ -156,16 +156,16 @@ export default function CallsignLookup() {
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
               <div>
-                <p className="text-3xl md:text-4xl font-bold text-primary">2M+</p>
-                <p className="text-sm text-muted-foreground mt-1">Callsigns</p>
+                <p className="text-3xl md:text-4xl font-bold text-primary">1M+</p>
+                <p className="text-sm text-muted-foreground mt-1">US Callsigns</p>
               </div>
               <div>
-                <p className="text-3xl md:text-4xl font-bold text-primary">150+</p>
-                <p className="text-sm text-muted-foreground mt-1">Countries</p>
+                <p className="text-3xl md:text-4xl font-bold text-primary">FCC</p>
+                <p className="text-sm text-muted-foreground mt-1">Database</p>
               </div>
               <div>
                 <p className="text-3xl md:text-4xl font-bold text-primary">Real-time</p>
-                <p className="text-sm text-muted-foreground mt-1">Updates</p>
+                <p className="text-sm text-muted-foreground mt-1">Lookup</p>
               </div>
               <div>
                 <p className="text-3xl md:text-4xl font-bold text-primary">Free</p>
