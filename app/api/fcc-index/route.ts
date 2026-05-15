@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server"
 
+// Cache the data for 1 hour on the server
+export const revalidate = 3600
+
 export async function GET() {
   try {
     const response = await fetch("https://ke8rxnwx.net/data/fcc-index.json", {
       headers: {
         "Accept": "application/json",
       },
+      next: { revalidate: 3600 }, // Cache for 1 hour
     })
 
     if (!response.ok) {
