@@ -35,10 +35,19 @@ export function useFccDatabase() {
         setError(null)
         setLoadingProgress(10)
 
-        // Initialize SQL.js with the WASM file from CDN
-        // Using the full WASM URL to avoid sync/async fetching issues
+        // Fetch the WASM binary first to avoid sync/async issues
+        const wasmResponse = await fetch(
+          "https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.11.0/sql-wasm.wasm"
+        )
+        if (!wasmResponse.ok) {
+          throw new Error(`Failed to fetch WASM: ${wasmResponse.statusText}`)
+        }
+        const wasmBinary = await wasmResponse.arrayBuffer()
+        setLoadingProgress(20)
+
+        // Initialize SQL.js with the pre-fetched WASM binary
         const SQL = await initSqlJs({
-          locateFile: () => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.11.0/sql-wasm.wasm`,
+          wasmBinary,
         })
         setLoadingProgress(30)
 
