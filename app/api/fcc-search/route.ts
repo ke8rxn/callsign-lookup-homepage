@@ -59,18 +59,27 @@ export async function GET(request: Request) {
   try {
     const index = await loadIndex()
     const searchTerm = callsign.trim().toLowerCase()
-    const result = index.find((record: CallsignRecord) => record.callsign_lc === searchTerm)
+    
+    // First find the searched callsign to get its FRN
+    const primaryResult = index.find((record: CallsignRecord) => record.callsign_lc === searchTerm)
 
-    if (result) {
-      return NextResponse.json(result)
-    } else {
+    if (!primaryResult) {
       return NextResponse.json(
         { error: "Callsign not found" },
         { status: 404 }
       )
     }
+
+    // Find all callsigns with the same FRN
+    const relatedCallsigns = index.filter(
+      (record: CallsignRecord) => record.frn === primaryResult.frn
+    )
+
+    return NextResponse.json({
+      primary: primaryResult,
+      related: relatedCallsigns,
+    })
   } catch (error) {
-    console.error("[v0] Error searching FCC index:", error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to search" },
       { status: 500 }

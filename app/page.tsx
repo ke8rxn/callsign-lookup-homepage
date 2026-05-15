@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Search, Radio, MapPin, Calendar, Award, Moon, Sun, Loader2 } from "lucide-react"
+import { Search, Radio, MapPin, Calendar, Moon, Sun, Loader2, Award } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,11 +15,16 @@ interface CallsignRecord {
   frn: string
 }
 
+interface SearchResult {
+  primary: CallsignRecord
+  related: CallsignRecord[]
+}
+
 export default function CallsignLookup() {
   const [callsign, setCallsign] = useState("")
   const [isDark, setIsDark] = useState(true)
   const [isSearching, setIsSearching] = useState(false)
-  const [searchResult, setSearchResult] = useState<CallsignRecord | null>(null)
+  const [searchResult, setSearchResult] = useState<SearchResult | null>(null)
   const [hasSearched, setHasSearched] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -145,53 +150,45 @@ export default function CallsignLookup() {
                 {searchResult ? (
                   <Card className="bg-card border-border text-left">
                     <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle className="text-2xl text-primary">{searchResult.callsign}</CardTitle>
-                          <CardDescription className="text-lg">{searchResult.full_name || "Name not available"}</CardDescription>
-                        </div>
-                        <div className="h-12 px-4 rounded-lg bg-accent/20 flex items-center justify-center">
-                          <span className="text-accent font-bold text-sm">{searchResult.service}</span>
-                        </div>
+                      <div>
+                        <CardTitle className="text-2xl text-primary">{searchResult.primary.full_name || "Name not available"}</CardTitle>
+                        <CardDescription className="text-lg">
+                          {searchResult.primary.full_address && searchResult.primary.full_address !== ", ," 
+                            ? searchResult.primary.full_address 
+                            : "Address not available"}
+                        </CardDescription>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Location */}
-                        <div className="flex items-start gap-3">
-                          <div className="h-8 w-8 rounded-lg bg-accent/20 flex items-center justify-center shrink-0">
-                            <MapPin className="h-4 w-4 text-accent" />
-                          </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">Location</p>
-                            <p className="text-foreground">
-                              {searchResult.full_address && searchResult.full_address !== ", ," 
-                                ? searchResult.full_address 
-                                : "Address not available"}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* FRN */}
-                        <div className="flex items-start gap-3">
-                          <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
-                            <Award className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">FRN</p>
-                            <p className="text-foreground">{searchResult.frn || "Not available"}</p>
-                          </div>
-                        </div>
-
-                        {/* Service Type */}
-                        <div className="flex items-start gap-3">
-                          <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
-                            <Radio className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">Service Type</p>
-                            <p className="text-foreground">{searchResult.service}</p>
-                          </div>
+                      {/* All Callsigns for this FRN */}
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-3">Associated Callsigns</p>
+                        <div className="flex flex-wrap gap-2">
+                          {searchResult.related.map((record) => (
+                            <div
+                              key={record.callsign}
+                              className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+                                record.callsign === searchResult.primary.callsign
+                                  ? "bg-primary/20 border border-primary/30"
+                                  : "bg-muted"
+                              }`}
+                            >
+                              <span className={`font-bold ${
+                                record.callsign === searchResult.primary.callsign
+                                  ? "text-primary"
+                                  : "text-foreground"
+                              }`}>
+                                {record.callsign}
+                              </span>
+                              <span className={`text-xs px-2 py-0.5 rounded ${
+                                record.service === "Amateur Radio"
+                                  ? "bg-accent/20 text-accent"
+                                  : "bg-primary/20 text-primary"
+                              }`}>
+                                {record.service === "Amateur Radio" ? "HAM" : "GMRS"}
+                              </span>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </CardContent>
