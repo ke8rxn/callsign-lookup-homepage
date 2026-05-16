@@ -36,6 +36,40 @@ function formatName(name: string): string {
   return name
 }
 
+// Format concatenated street address: "3831CasperAveNW" -> "3831 Casper Ave NW"
+function formatStreet(street: string): string {
+  if (!street) return "Street not available"
+  
+  // Common street suffixes and directions
+  const suffixes = ["Ave", "St", "Dr", "Blvd", "Rd", "Ln", "Ct", "Pl", "Way", "Cir", "Pkwy", "Ter", "Trl"]
+  const directions = ["NW", "NE", "SW", "SE", "N", "S", "E", "W"]
+  
+  let formatted = street
+  
+  // Add space before direction suffixes at the end
+  for (const dir of directions) {
+    const regex = new RegExp(`(${dir})$`, "i")
+    if (regex.test(formatted)) {
+      formatted = formatted.replace(regex, ` ${dir}`)
+      break
+    }
+  }
+  
+  // Add space before and after street suffixes
+  for (const suffix of suffixes) {
+    const regex = new RegExp(`([a-z])(${suffix})([A-Z]|\\s|$)`, "i")
+    formatted = formatted.replace(regex, `$1 ${suffix} $3`)
+  }
+  
+  // Add space between number and first letter
+  formatted = formatted.replace(/^(\d+)([A-Za-z])/, "$1 $2")
+  
+  // Add space before capital letters in the middle of words (for street names)
+  formatted = formatted.replace(/([a-z])([A-Z])/g, "$1 $2")
+  
+  return formatted.trim().replace(/\s+/g, " ")
+}
+
 export default function CallsignLookup() {
   const [callsign, setCallsign] = useState("")
   const [isDark, setIsDark] = useState(true)
@@ -169,7 +203,7 @@ export default function CallsignLookup() {
                       <div>
                         <CardTitle className="text-2xl text-primary">{formatName(searchResult.primary.name)}</CardTitle>
                         <CardDescription className="text-base">
-                          {searchResult.primary.street || "Street not available"}
+                          {formatStreet(searchResult.primary.street)}
                         </CardDescription>
                         <CardDescription className="text-lg">
                           {searchResult.primary.city && searchResult.primary.state 
