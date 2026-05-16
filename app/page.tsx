@@ -165,17 +165,13 @@ export default function CallsignLookup() {
     setTimeout(() => setCopied(false), 2000)
   }, [])
 
-  // Fetch DMR ID for a callsign from RadioID.net
+  // Fetch DMR ID for a callsign via server-side proxy (avoids CORS issues)
   const fetchDmrId = useCallback(async (amateurCallsign: string): Promise<string | null> => {
     try {
-      const response = await fetch(`https://radioid.net/api/dmr/user/?callsign=${encodeURIComponent(amateurCallsign)}`)
+      const response = await fetch(`/api/dmr-lookup?callsign=${encodeURIComponent(amateurCallsign)}`)
       if (!response.ok) return null
       const data = await response.json()
-      // Return only the first DMR ID if multiple exist
-      if (data.results && data.results.length > 0) {
-        return String(data.results[0].id)
-      }
-      return null
+      return data.dmrId || null
     } catch {
       return null
     }
