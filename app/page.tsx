@@ -319,39 +319,42 @@ export default function CallsignLookup() {
                   API
                 </button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-lg">
+              <DialogContent className="sm:max-w-lg" aria-describedby="api-dialog-description">
                 <DialogHeader>
                   <DialogTitle>API Documentation</DialogTitle>
-                  <DialogDescription>
+                  <DialogDescription id="api-dialog-description">
                     Use the KE8RXN Callsign API to look up amateur radio and GMRS license information.
                   </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4">
+                <div className="space-y-4" role="region" aria-label="API details">
                   <div>
-                    <h4 className="text-sm font-medium mb-2">Endpoint</h4>
+                    <h4 id="endpoint-label" className="text-sm font-medium mb-2">Endpoint</h4>
                     <div className="flex items-center gap-2">
-                      <code className="flex-1 bg-muted px-3 py-2 rounded-md text-sm font-mono break-all">
+                      <code className="flex-1 bg-muted px-3 py-2 rounded-md text-sm font-mono break-all" aria-labelledby="endpoint-label">
                         https://api.ke8rxnwx.net/crossref/
                       </code>
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={() => copyToClipboard("https://api.ke8rxnwx.net/crossref/")}
-                        aria-label={copied ? "Copied" : "Copy API endpoint"}
+                        aria-label="Copy API endpoint to clipboard"
                       >
-                        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        {copied ? <Check className="h-4 w-4" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
                       </Button>
+                      <span className="sr-only" role="status" aria-live="polite">
+                        {copied ? "API endpoint copied to clipboard" : ""}
+                      </span>
                     </div>
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium mb-2">Example Request</h4>
-                    <code className="block bg-muted px-3 py-2 rounded-md text-sm font-mono break-all">
+                    <h4 id="example-label" className="text-sm font-medium mb-2">Example Request</h4>
+                    <code className="block bg-muted px-3 py-2 rounded-md text-sm font-mono break-all" aria-labelledby="example-label">
                       GET https://api.ke8rxnwx.net/crossref/KE8RXN
                     </code>
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium mb-2">Response</h4>
-                    <p className="text-sm text-muted-foreground">
+                    <h4 id="response-label" className="text-sm font-medium mb-2">Response</h4>
+                    <p className="text-sm text-muted-foreground" aria-labelledby="response-label">
                       Returns JSON with callsign details including name, address, license class, and associated callsigns (amateur and GMRS) for the same FRN.
                     </p>
                   </div>
