@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Search, Radio, MapPin, Calendar, Moon, Sun, Loader2, Award } from "lucide-react"
+import { Search, Radio, MapPin, Calendar, Moon, Sun, Loader2, Award, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -112,6 +112,55 @@ export default function CallsignLookup() {
       document.documentElement.classList.remove("dark")
     }
   }
+
+  const exportToCSV = useCallback(() => {
+    if (searchResults.length === 0) return
+
+    // CSV headers
+    const headers = ["Callsign", "Name", "Street", "City", "State", "ZIP", "Service", "License Class"]
+    
+    // Build CSV rows from all related callsigns
+    const rows: string[][] = []
+    for (const result of searchResults) {
+      const amateurRecord = result.related.find(r => isAmateurRadio(r.service)) || result.primary
+      for (const record of result.related) {
+        rows.push([
+          record.callsign,
+          formatName(amateurRecord.name),
+          formatStreet(amateurRecord.street),
+          amateurRecord.city || "",
+          amateurRecord.state || "",
+          amateurRecord.zip || "",
+          isAmateurRadio(record.service) ? "Amateur" : "GMRS",
+          isAmateurRadio(record.service) && record.class ? formatLicenseClass(record.class) : ""
+        ])
+      }
+    }
+
+    // Escape CSV values
+    const escapeCSV = (value: string) => {
+      if (value.includes(",") || value.includes('"') || value.includes("\n")) {
+        return `"${value.replace(/"/g, '""')}"`
+      }
+      return value
+    }
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(escapeCSV).join(","))
+    ].join("\n")
+
+    // Create and download the file
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `callsign-lookup-${new Date().toISOString().split("T")[0]}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }, [searchResults])
 
   const handleSearch = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
@@ -267,6 +316,19 @@ export default function CallsignLookup() {
                 <Button type="submit" size="lg" className="h-12 px-8" disabled={isSearching} aria-busy={isSearching}>
                   {isSearching ? <><Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /><span className="sr-only">Searching</span></> : "Search"}
                 </Button>
+                {searchResults.length > 0 && (
+                  <Button 
+                    type="button" 
+                    size="lg" 
+                    variant="outline"
+                    className="h-12 px-4" 
+                    onClick={exportToCSV}
+                    aria-label="Download results as CSV"
+                  >
+                    <Download className="h-5 w-5" aria-hidden="true" />
+                    <span className="sr-only md:not-sr-only md:ml-2">Download</span>
+                  </Button>
+                )}
               </div>
             </form>
 
