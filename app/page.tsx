@@ -36,6 +36,20 @@ function formatName(name: string): string {
   return name
 }
 
+// Convert license class abbreviation to full name
+function formatLicenseClass(classAbbr: string | null): string {
+  if (!classAbbr) return ""
+  const classMap: Record<string, string> = {
+    "E": "Amateur Extra",
+    "G": "General",
+    "T": "Technician",
+    "A": "Advanced",
+    "N": "Novice",
+    "P": "Technician Plus",
+  }
+  return classMap[classAbbr.toUpperCase()] || classAbbr
+}
+
 // Format concatenated street address: "3831CasperAveNW" -> "3831 Casper Ave NW"
 function formatStreet(street: string): string {
   if (!street) return "Street not available"
@@ -239,7 +253,7 @@ export default function CallsignLookup() {
                                   : "bg-primary/20 text-primary"
                               }`}>
                                 {record.service === "HA" ? "Amateur Radio" : "GMRS"}
-                                {record.service === "HA" && record.class && ` (${record.class})`}
+                                {record.service === "HA" && record.class && ` (${formatLicenseClass(record.class)})`}
                               </span>
                             </div>
                           ))}
