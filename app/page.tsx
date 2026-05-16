@@ -96,10 +96,18 @@ function formatStreet(street: string): string {
     }
   }
   
-  // Step 2: Add space between number and first letter
-  formatted = formatted.replace(/^(\d+)([A-Za-z])/, "$1 $2")
+  // Step 2: Handle ordinal street names (e.g., "1241140thAve" -> "1241 140th Ave")
+  // Look for ordinal pattern: digits followed by st/nd/rd/th
+  const ordinalMatch = formatted.match(/^(\d+?)(\d{1,3})(st|nd|rd|th)(.*)$/i)
+  if (ordinalMatch) {
+    const [, houseNum, streetNum, ordinalSuffix, rest] = ordinalMatch
+    formatted = `${houseNum} ${streetNum}${ordinalSuffix.toLowerCase()}${rest}`
+  } else {
+    // Step 3: Add space between number and first letter (only if no ordinal)
+    formatted = formatted.replace(/^(\d+)([A-Za-z])/, "$1 $2")
+  }
   
-  // Step 3: Find and isolate street suffix
+  // Step 4: Find and isolate street suffix
   // These must match as complete suffix words, not within other words
   // Order matters: check longer suffixes first to avoid partial matches
   const suffixPatterns = [
@@ -120,11 +128,11 @@ function formatStreet(street: string): string {
     }
   }
   
-  // Step 4: Now split remaining concatenated words
+  // Step 5: Now split remaining concatenated words
   // Only split on lowercase-to-uppercase transitions
   formatted = formatted.replace(/([a-z])([A-Z])/g, "$1 $2")
   
-  // Step 5: Add back the trailing direction
+  // Step 6: Add back the trailing direction
   if (trailingDirection) {
     formatted = formatted + " " + trailingDirection
   }
