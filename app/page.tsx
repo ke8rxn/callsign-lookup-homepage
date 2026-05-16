@@ -306,7 +306,7 @@ export default function CallsignLookup() {
                     placeholder="Enter callsigns"
                     value={callsign}
                     onChange={(e) => setCallsign(e.target.value.toUpperCase())}
-                    className="pl-10 h-12 text-lg bg-card border-border"
+                    className="pl-10 h-12 text-lg !bg-input dark:!bg-input border-border text-foreground"
                     aria-describedby="search-hint"
                   />
                   <span id="search-hint" className="sr-only">
@@ -320,7 +320,6 @@ export default function CallsignLookup() {
                   <Button 
                     type="button" 
                     size="lg" 
-                    variant="outline"
                     className="h-12 px-4" 
                     onClick={exportToCSV}
                     aria-label="Download results as CSV"
