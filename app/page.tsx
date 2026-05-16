@@ -305,9 +305,6 @@ export default function CallsignLookup() {
             <a href="#" className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="Home page">
               Home
             </a>
-            <a href="#" className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="About this service">
-              About
-            </a>
             <a href="#" className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="API documentation">
               API
             </a>
