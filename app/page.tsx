@@ -239,24 +239,16 @@ export default function CallsignLookup() {
                           {searchResult.related.map((record) => (
                             <div
                               key={record.callsign}
-                              className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+                              className={`px-4 py-2 rounded-lg flex items-center gap-2 bg-muted ${
                                 record.callsign === searchResult.primary.callsign
-                                  ? "bg-primary/20 border border-primary/30"
-                                  : "bg-muted"
+                                  ? "border border-primary/50"
+                                  : ""
                               }`}
                             >
-                              <span className={`font-bold ${
-                                record.callsign === searchResult.primary.callsign
-                                  ? "text-primary"
-                                  : "text-foreground"
-                              }`}>
+                              <span className="font-bold text-foreground">
                                 {record.callsign}
                               </span>
-                              <span className={`text-xs px-2 py-0.5 rounded ${
-                                isAmateurRadio(record.service)
-                                  ? "bg-accent/20 text-accent"
-                                  : "bg-primary/20 text-primary"
-                              }`}>
+                              <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary">
                                 {isAmateurRadio(record.service) ? "Amateur Radio" : "GMRS"}
                                 {isAmateurRadio(record.service) && record.class && ` (${formatLicenseClass(record.class)})`}
                               </span>
