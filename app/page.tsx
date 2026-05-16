@@ -26,6 +26,16 @@ interface SearchResult {
   related: CallsignRecord[]
 }
 
+// Convert "Last, First" to "First Last"
+function formatName(name: string): string {
+  if (!name) return "Name not available"
+  const parts = name.split(",").map(part => part.trim())
+  if (parts.length === 2) {
+    return `${parts[1]} ${parts[0]}`
+  }
+  return name
+}
+
 export default function CallsignLookup() {
   const [callsign, setCallsign] = useState("")
   const [isDark, setIsDark] = useState(true)
@@ -157,7 +167,10 @@ export default function CallsignLookup() {
                   <Card className="bg-card border-border text-left">
                     <CardHeader>
                       <div>
-                        <CardTitle className="text-2xl text-primary">{searchResult.primary.name || "Name not available"}</CardTitle>
+                        <CardTitle className="text-2xl text-primary">{formatName(searchResult.primary.name)}</CardTitle>
+                        <CardDescription className="text-base">
+                          {searchResult.primary.street || "Street not available"}
+                        </CardDescription>
                         <CardDescription className="text-lg">
                           {searchResult.primary.city && searchResult.primary.state 
                             ? `${searchResult.primary.city}, ${searchResult.primary.state}` 
