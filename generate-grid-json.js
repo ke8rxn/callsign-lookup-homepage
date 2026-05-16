@@ -1,12 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 
-// ====================== YOUR CSV URL ======================
-const RAW_CSV_URL = 'https://raw.githubusercontent.com/ke8rxn/callsign-lookup-homepage/refs/heads/main/uszips.csv?token=GHSAT0AAAAAADZI63KSCJNJZ7ENJK6DUH3A2QIWR6A';
-// ===========================================================
+// ====================== YOUR NEW PUBLIC CSV URL ======================
+const RAW_CSV_URL = 'https://raw.githubusercontent.com/ke8rxn/callsign-lookup-homepage/refs/heads/main/uszips.csv';
+// =====================================================================
 
 async function generateGridJson() {
-  console.log('📥 Fetching uszips.csv from your GitHub repo...');
+  console.log('📥 Fetching uszips.csv from your public GitHub repo...');
 
   const response = await fetch(RAW_CSV_URL);
   if (!response.ok) throw new Error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
@@ -15,7 +15,6 @@ async function generateGridJson() {
   const lines = csvText.trim().split('\n');
   const headers = lines[0].toLowerCase().split(',').map(h => h.trim().replace(/"/g, ''));
 
-  // Auto-detect columns (will find zip, lat, lng perfectly)
   const zipCol = headers.findIndex(h => h === 'zip' || h === 'zipcode' || h === 'zcta');
   const latCol = headers.findIndex(h => h === 'lat' || h === 'latitude');
   const lonCol = headers.findIndex(h => h === 'lng' || h === 'lon' || h === 'long' || h === 'longitude');
@@ -41,7 +40,7 @@ async function generateGridJson() {
 
   console.log(`🎉 SUCCESS! Created public/zip_to_grid.json`);
   console.log(`   → ${Object.keys(lookup).length.toLocaleString()} ZIP codes processed`);
-  console.log(`   → Ready for Vercel! Just commit & push.`);
+  console.log(`   → Ready for Vercel!`);
 }
 
 function latLonToMaidenhead(lat, lon) {
