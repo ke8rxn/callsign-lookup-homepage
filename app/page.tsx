@@ -491,9 +491,8 @@ export default function CallsignLookup() {
                           </CardDescription>
                         </address>
                       </CardHeader>
-                      <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-                        <h4 id={`callsigns-label-${searchResult.primary.callsign}`} className="text-sm text-muted-foreground mb-2 md:mb-3">Associated Callsigns</h4>
-                        <ul className="flex flex-wrap gap-2" aria-labelledby={`callsigns-label-${searchResult.primary.callsign}`}>
+                      <CardContent className="p-3 pt-0 md:p-6 md:pt-0 space-y-2">
+                        <ul className="flex flex-wrap gap-2" aria-label="Associated callsigns">
                           {searchResult.related.map((record) => (
                             <li
                               key={record.callsign}
@@ -514,6 +513,16 @@ export default function CallsignLookup() {
                             </li>
                           ))}
                         </ul>
+                        <div className="flex flex-wrap gap-2" aria-label="Additional information">
+                          <div className="px-3.5 py-2 md:px-4 md:py-2 rounded-lg flex items-center gap-2 bg-muted" aria-label="DMR ID: Not available">
+                            <span className="font-bold text-base text-foreground" aria-hidden="true">—</span>
+                            <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary" aria-hidden="true">DMR ID</span>
+                          </div>
+                          <div className="px-3.5 py-2 md:px-4 md:py-2 rounded-lg flex items-center gap-2 bg-muted" aria-label="Grid Square: Not available">
+                            <span className="font-bold text-base text-foreground" aria-hidden="true">—</span>
+                            <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary" aria-hidden="true">Grid</span>
+                          </div>
+                        </div>
                       </CardContent>
                     </Card>
                   )
