@@ -9,11 +9,15 @@ async function getGridMap(): Promise<Record<string, string>> {
     next: { revalidate: 86400 }, // Cache for 24 hours
   })
 
+  console.log("[v0] grid-lookup fetch status:", response.status, response.ok)
+
   if (!response.ok) {
     throw new Error("Failed to fetch grid square data")
   }
 
-  gridCache = await response.json()
+  const data = await response.json()
+  console.log("[v0] grid-lookup data type:", typeof data, "keys sample:", Object.keys(data).slice(0, 5))
+  gridCache = data
   return gridCache as Record<string, string>
 }
 
@@ -30,9 +34,11 @@ export async function GET(request: Request) {
     // Try exact zip, also try 5-digit prefix if longer
     const zipKey = zip.trim().substring(0, 5)
     const grid = gridMap[zipKey] || null
+    console.log("[v0] grid-lookup zip:", zipKey, "grid:", grid, "mapHasKey:", zipKey in gridMap)
 
     return NextResponse.json({ grid })
-  } catch {
+  } catch (err) {
+    console.log("[v0] grid-lookup error:", err)
     return NextResponse.json({ grid: null })
   }
 }

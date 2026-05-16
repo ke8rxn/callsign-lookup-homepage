@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { Search, Radio, MapPin, Moon, Sun, Loader2, Award, Download, Users, Copy, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -178,14 +178,19 @@ export default function CallsignLookup() {
     }
   }, [])
 
-  // Fetch grid square from zip code via server-side proxy
+  // Fetch grid square from zip code using client-side lookup
+  const gridMapCache = useRef<Record<string, string> | null>(null)
   const fetchGridSquare = useCallback(async (zip: string): Promise<string | null> => {
     if (!zip) return null
     try {
-      const response = await fetch(`/api/grid-lookup?zip=${encodeURIComponent(zip)}`)
-      if (!response.ok) return null
-      const data = await response.json()
-      return data.grid || null
+      // Fetch and cache the zip-to-grid JSON on first use
+      if (!gridMapCache.current) {
+        const response = await fetch("https://callsign.ke8rxnwx.net/zip_to_grid.json")
+        if (!response.ok) return null
+        gridMapCache.current = await response.json()
+      }
+      const zipKey = zip.trim().substring(0, 5)
+      return gridMapCache.current?.[zipKey] || null
     } catch {
       return null
     }
