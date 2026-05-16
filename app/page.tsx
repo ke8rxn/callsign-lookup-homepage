@@ -157,11 +157,28 @@ export default function CallsignLookup() {
   const [hasSearched, setHasSearched] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [dmrIds, setDmrIds] = useState<Record<string, string>>({})
 
   const copyToClipboard = useCallback(async (text: string) => {
     await navigator.clipboard.writeText(text)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }, [])
+
+  // Fetch DMR ID for a callsign from RadioID.net
+  const fetchDmrId = useCallback(async (amateurCallsign: string): Promise<string | null> => {
+    try {
+      const response = await fetch(`https://radioid.net/api/dmr/user/?callsign=${encodeURIComponent(amateurCallsign)}`)
+      if (!response.ok) return null
+      const data = await response.json()
+      // Return only the first DMR ID if multiple exist
+      if (data.results && data.results.length > 0) {
+        return String(data.results[0].id)
+      }
+      return null
+    } catch {
+      return null
+    }
   }, [])
 
   useEffect(() => {
@@ -240,6 +257,7 @@ export default function CallsignLookup() {
     setError(null)
     setSearchResults([])
     setNotFound([])
+    setDmrIds({})
 
     // Split by comma, semicolon, or whitespace and clean up each callsign
     const callsigns = callsign
@@ -294,12 +312,34 @@ export default function CallsignLookup() {
 
       setSearchResults(results)
       setNotFound(notFoundList)
+
+      // Fetch DMR IDs for amateur callsigns (in parallel, non-blocking)
+      const amateurCallsigns = results
+        .flatMap(r => r.related.filter(rec => isAmateurRadio(rec.service)))
+        .map(rec => rec.callsign)
+      
+      if (amateurCallsigns.length > 0) {
+        Promise.all(
+          amateurCallsigns.map(async (cs) => {
+            const dmrId = await fetchDmrId(cs)
+            return { callsign: cs, dmrId }
+          })
+        ).then((dmrResults) => {
+          const dmrMap: Record<string, string> = {}
+          for (const { callsign: cs, dmrId } of dmrResults) {
+            if (dmrId) {
+              dmrMap[cs] = dmrId
+            }
+          }
+          setDmrIds(dmrMap)
+        })
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Search failed")
     } finally {
       setIsSearching(false)
     }
-  }, [callsign])
+  }, [callsign, fetchDmrId])
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -531,14 +571,19 @@ export default function CallsignLookup() {
                               )}
                               {/* Empty placeholder if no GMRS to maintain grid */}
                               {!gmrsCall && amateurCall && <div aria-hidden="true" />}
-                              {/* DMR ID pill */}
-                              <div
-                                className="px-3 py-2 md:px-4 md:py-2.5 rounded-lg flex items-center justify-between bg-muted"
-                                aria-label="DMR ID: Not available"
-                              >
-                                <span className="font-bold text-base text-foreground" aria-hidden="true">—</span>
-                                <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary" aria-hidden="true">DMR ID</span>
-                              </div>
+                              {/* DMR ID pill - only for amateur callsigns */}
+                              {(() => {
+                                const dmrId = amateurCall ? dmrIds[amateurCall.callsign] : null
+                                return (
+                                  <div
+                                    className="px-3 py-2 md:px-4 md:py-2.5 rounded-lg flex items-center justify-between bg-muted"
+                                    aria-label={dmrId ? `DMR ID: ${dmrId}` : "DMR ID: Not available"}
+                                  >
+                                    <span className="font-bold text-base text-foreground" aria-hidden="true">{dmrId || "—"}</span>
+                                    <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary" aria-hidden="true">DMR ID</span>
+                                  </div>
+                                )
+                              })()}
                               {/* Grid Square pill */}
                               <div
                                 className="px-3 py-2 md:px-4 md:py-2.5 rounded-lg flex items-center justify-between bg-muted"
