@@ -326,7 +326,7 @@ export default function CallsignLookup() {
                   aria-label="Export results to CSV"
                 >
                   <Download className="h-5 w-5" aria-hidden="true" />
-                  <span className="sr-only md:not-sr-only md:ml-2">Export</span>
+                  <span className="sr-only md:not-sr-only md:ml-2">Download</span>
                 </Button>
               </div>
             </form>
