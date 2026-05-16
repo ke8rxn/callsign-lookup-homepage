@@ -334,7 +334,7 @@ export default function CallsignLookup() {
                     size="lg" 
                     className="h-12 px-4" 
                     onClick={exportToCSV}
-                    aria-label="Download results as CSV"
+                    aria-label="Download search results as CSV file"
                   >
                     <Download className="h-5 w-5" aria-hidden="true" />
                     <span className="sr-only md:not-sr-only md:ml-2">Download</span>
