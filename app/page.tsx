@@ -46,7 +46,7 @@ function isAmateurRadio(service: string): boolean {
 function formatLicenseClass(classAbbr: string | null): string {
   if (!classAbbr) return ""
   const classMap: Record<string, string> = {
-    "E": "Amateur Extra",
+    "E": "Extra",
     "G": "General",
     "T": "Technician",
     "A": "Advanced",
@@ -486,21 +486,21 @@ export default function CallsignLookup() {
                       </CardHeader>
                       <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
                         <h4 id={`callsigns-label-${searchResult.primary.callsign}`} className="text-sm text-muted-foreground mb-2 md:mb-3">Associated Callsigns</h4>
-                        <ul className="flex flex-wrap gap-1.5 md:gap-2" aria-labelledby={`callsigns-label-${searchResult.primary.callsign}`}>
+                        <ul className="flex flex-wrap gap-2 md:gap-3" aria-labelledby={`callsigns-label-${searchResult.primary.callsign}`}>
                           {searchResult.related.map((record) => (
                             <li
                               key={record.callsign}
-                              className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg flex items-center gap-1.5 md:gap-2 bg-muted ${
+                              className={`px-4 py-2 md:px-5 md:py-2.5 rounded-lg flex items-center gap-2 md:gap-3 bg-muted ${
                                 record.callsign === searchResult.primary.callsign
                                   ? "border border-primary/50"
                                   : ""
                               }`}
                               aria-label={`${record.callsign}, ${isAmateurRadio(record.service) ? `Amateur Radio${record.class ? `, ${formatLicenseClass(record.class)} class` : ''}` : 'GMRS'}${record.callsign === searchResult.primary.callsign ? ', searched callsign' : ''}`}
                             >
-                              <span className="font-bold text-foreground" aria-hidden="true">
+                              <span className="font-bold text-base md:text-lg text-foreground" aria-hidden="true">
                                 {record.callsign}
                               </span>
-                              <span className="text-xs px-2 py-0.5 rounded bg-accent/20 text-accent" aria-hidden="true">
+                              <span className="text-xs md:text-sm px-2 md:px-2.5 py-0.5 md:py-1 rounded bg-accent/20 text-accent" aria-hidden="true">
                                 {isAmateurRadio(record.service) ? "Amateur" : "GMRS"}
                                 {isAmateurRadio(record.service) && record.class && ` (${formatLicenseClass(record.class)})`}
                               </span>
