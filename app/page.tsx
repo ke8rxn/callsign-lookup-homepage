@@ -381,8 +381,11 @@ export default function CallsignLookup() {
             <h2 id="search-heading" className="text-2xl md:text-5xl font-bold text-foreground mb-2 md:mb-4 text-balance">
               Callsign Lookup
             </h2>
-            <p className="text-muted-foreground text-sm md:text-xl mb-4 md:mb-8 max-w-2xl mx-auto text-pretty">
-              Search for single or multiple amateur radio or GMRS callsigns. Get license and location details instantly.
+            <p className="text-muted-foreground text-sm md:text-xl mb-1 md:mb-2 max-w-2xl mx-auto text-pretty">
+              Search for single or multiple amateur radio or GMRS callsigns.
+            </p>
+            <p className="text-muted-foreground text-sm md:text-xl mb-4 md:mb-8 max-w-2xl mx-auto">
+              Get license and location details instantly.
             </p>
 
             {error && (
