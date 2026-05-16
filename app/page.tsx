@@ -316,18 +316,19 @@ export default function CallsignLookup() {
                 <Button type="submit" size="lg" className="h-12 px-8" disabled={isSearching} aria-busy={isSearching}>
                   {isSearching ? <><Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /><span className="sr-only">Searching</span></> : "Search"}
                 </Button>
-                <Button 
-                  type="button" 
-                  size="lg" 
-                  variant="outline"
-                  className="h-12 px-4" 
-                  disabled={searchResults.length === 0}
-                  onClick={exportToCSV}
-                  aria-label="Export results to CSV"
-                >
-                  <Download className="h-5 w-5" aria-hidden="true" />
-                  <span className="sr-only md:not-sr-only md:ml-2">Download</span>
-                </Button>
+                {searchResults.length > 0 && (
+                  <Button 
+                    type="button" 
+                    size="lg" 
+                    variant="outline"
+                    className="h-12 px-4" 
+                    onClick={exportToCSV}
+                    aria-label="Download results as CSV"
+                  >
+                    <Download className="h-5 w-5" aria-hidden="true" />
+                    <span className="sr-only md:not-sr-only md:ml-2">Download</span>
+                  </Button>
+                )}
               </div>
             </form>
 
