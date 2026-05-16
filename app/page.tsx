@@ -298,7 +298,7 @@ export default function CallsignLookup() {
                                 {record.callsign}
                               </span>
                               <span className="text-xs px-2 py-0.5 rounded bg-accent/20 text-accent">
-                                {isAmateurRadio(record.service) ? "Amateur Radio" : "GMRS"}
+                                {isAmateurRadio(record.service) ? "Amateur" : "GMRS"}
                                 {isAmateurRadio(record.service) && record.class && ` (${formatLicenseClass(record.class)})`}
                               </span>
                             </div>
