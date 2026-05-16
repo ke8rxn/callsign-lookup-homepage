@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { Search, Radio, MapPin, Moon, Sun, Loader2, Award, Download, Users, Copy, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -158,6 +158,7 @@ export default function CallsignLookup() {
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [dmrIds, setDmrIds] = useState<Record<string, string>>({})
+  const [gridSquares, setGridSquares] = useState<Record<string, string>>({})
 
   const copyToClipboard = useCallback(async (text: string) => {
     await navigator.clipboard.writeText(text)
@@ -172,6 +173,24 @@ export default function CallsignLookup() {
       if (!response.ok) return null
       const data = await response.json()
       return data.dmrId || null
+    } catch {
+      return null
+    }
+  }, [])
+
+  // Fetch grid square from zip code using client-side lookup
+  const gridMapCache = useRef<Record<string, string> | null>(null)
+  const fetchGridSquare = useCallback(async (zip: string): Promise<string | null> => {
+    if (!zip) return null
+    try {
+      // Fetch and cache the zip-to-grid JSON on first use
+      if (!gridMapCache.current) {
+        const response = await fetch("https://callsigns.ke8rxnwx.net/zip_to_grid.json")
+        if (!response.ok) return null
+        gridMapCache.current = await response.json()
+      }
+      const zipKey = zip.trim().substring(0, 5)
+      return gridMapCache.current?.[zipKey] || null
     } catch {
       return null
     }
@@ -254,6 +273,7 @@ export default function CallsignLookup() {
     setSearchResults([])
     setNotFound([])
     setDmrIds({})
+    setGridSquares({})
 
     // Split by comma, semicolon, or whitespace and clean up each callsign
     const callsigns = callsign
@@ -330,12 +350,35 @@ export default function CallsignLookup() {
           setDmrIds(dmrMap)
         })
       }
+
+      // Fetch grid squares from zip codes (in parallel, non-blocking)
+      const zipEntries = results.map(r => {
+        const amateurRec = r.related.find(rec => isAmateurRadio(rec.service)) || r.primary
+        return { callsign: r.primary.callsign, zip: amateurRec.zip }
+      }).filter(e => e.zip)
+
+      if (zipEntries.length > 0) {
+        Promise.all(
+          zipEntries.map(async ({ callsign: cs, zip }) => {
+            const grid = await fetchGridSquare(zip)
+            return { callsign: cs, grid }
+          })
+        ).then((gridResults) => {
+          const gridMap: Record<string, string> = {}
+          for (const { callsign: cs, grid } of gridResults) {
+            if (grid) {
+              gridMap[cs] = grid
+            }
+          }
+          setGridSquares(gridMap)
+        })
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Search failed")
     } finally {
       setIsSearching(false)
     }
-  }, [callsign, fetchDmrId])
+  }, [callsign, fetchDmrId, fetchGridSquare])
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -582,13 +625,18 @@ export default function CallsignLookup() {
                                 )
                               })()}
                               {/* Grid Square pill */}
-                              <div
-                                className="px-3 py-2 md:px-4 md:py-2.5 rounded-lg flex items-center justify-between bg-muted"
-                                aria-label="Grid Square: Not available"
-                              >
-                                <span className="font-bold text-base text-foreground" aria-hidden="true">—</span>
-                                <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary" aria-hidden="true">Grid</span>
-                              </div>
+                              {(() => {
+                                const grid = gridSquares[searchResult.primary.callsign]
+                                return (
+                                  <div
+                                    className="px-3 py-2 md:px-4 md:py-2.5 rounded-lg flex items-center justify-between bg-muted"
+                                    aria-label={grid ? `Grid Square: ${grid}` : "Grid Square: Not available"}
+                                  >
+                                    <span className="font-bold text-base text-foreground" aria-hidden="true">{grid || "—"}</span>
+                                    <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary" aria-hidden="true">Grid</span>
+                                  </div>
+                                )
+                              })()}
                             </div>
                           )
                         })()}
