@@ -247,14 +247,14 @@ export default function CallsignLookup() {
 
       {/* Header */}
       <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center" aria-hidden="true">
-              <Radio className="h-5 w-5 text-primary-foreground" />
+        <div className="container mx-auto px-3 py-2 md:px-4 md:py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="h-8 w-8 md:h-10 md:w-10 rounded-lg bg-primary flex items-center justify-center" aria-hidden="true">
+              <Radio className="h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">KE8RXN</h1>
-              <p className="text-xs text-muted-foreground">Callsign Lookup</p>
+              <h1 className="text-lg md:text-xl font-bold text-foreground">KE8RXN</h1>
+              <p className="text-xs text-muted-foreground hidden md:block">Callsign Lookup</p>
             </div>
           </div>
           <nav className="flex items-center gap-6" aria-label="Main navigation">
@@ -282,27 +282,27 @@ export default function CallsignLookup() {
       {/* Main Content */}
       <main id="main-content" className="flex-1 flex flex-col">
         {/* Hero Section with Search */}
-        <section className="py-10 md:py-14 bg-gradient-to-b from-card to-background" aria-labelledby="search-heading">
-          <div className="container mx-auto px-4 text-center">
-            <h2 id="search-heading" className="text-3xl md:text-5xl font-bold text-foreground mb-4 text-balance">
+        <section className="py-6 md:py-14 bg-gradient-to-b from-card to-background" aria-labelledby="search-heading">
+          <div className="container mx-auto px-3 md:px-4 text-center">
+            <h2 id="search-heading" className="text-2xl md:text-5xl font-bold text-foreground mb-2 md:mb-4 text-balance">
               Callsign Lookup
             </h2>
-            <p className="text-muted-foreground text-lg md:text-xl mb-8 max-w-2xl mx-auto text-pretty">
+            <p className="text-muted-foreground text-sm md:text-xl mb-4 md:mb-8 max-w-2xl mx-auto text-pretty">
               Search for single or multiple amateur radio or GMRS callsigns. Get license and location details instantly.
             </p>
 
             {error && (
-              <div role="alert" className="max-w-xl mx-auto mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
+              <div role="alert" className="max-w-xl mx-auto mb-4 md:mb-6 p-3 md:p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-xs md:text-sm">
                 {error}
               </div>
             )}
 
             {/* Search Bar */}
             <form onSubmit={handleSearch} className="max-w-xl mx-auto" role="search" aria-label="Callsign search">
-              <div className="flex gap-2">
-                <div className="relative flex-1">
+              <div className="flex gap-1.5 md:gap-2">
+                <div className="relative flex-1 md:flex-none md:w-[calc(100%-theme(spacing.32))]">
                   <label htmlFor="callsign-input" className="sr-only">Enter callsigns to search</label>
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" aria-hidden="true" />
+                  <Search className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground" aria-hidden="true" />
                   <Input
                     id="callsign-input"
                     type="text"
@@ -318,28 +318,30 @@ export default function CallsignLookup() {
                         setError(null)
                       }
                     }}
-                    className="pl-10 h-12 text-lg !bg-input dark:!bg-input border-border text-foreground"
+                    className="pl-8 md:pl-10 h-10 md:h-12 text-base md:text-lg !bg-input dark:!bg-input border-border text-foreground w-full"
                     aria-describedby="search-hint"
                   />
                   <span id="search-hint" className="sr-only">
                     Enter one or more callsigns separated by commas, semicolons, or spaces
                   </span>
                 </div>
-                <Button type="submit" size="lg" className="h-12 px-8" disabled={isSearching} aria-busy={isSearching}>
-                  {isSearching ? <><Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /><span className="sr-only">Searching</span></> : "Search"}
-                </Button>
-                {searchResults.length > 0 && (
-                  <Button 
-                    type="button" 
-                    size="lg" 
-                    className="h-12 px-4" 
-                    onClick={exportToCSV}
-                    aria-label="Download search results as CSV file"
-                  >
-                    <Download className="h-5 w-5" aria-hidden="true" />
-                    <span className="sr-only md:not-sr-only md:ml-2">Download</span>
+                <div className="flex gap-1.5 md:gap-2 shrink-0">
+                  <Button type="submit" size="lg" className="h-10 md:h-12 px-4 md:px-8 text-sm md:text-base" disabled={isSearching} aria-busy={isSearching}>
+                    {isSearching ? <><Loader2 className="h-4 w-4 md:h-5 md:w-5 animate-spin" aria-hidden="true" /><span className="sr-only">Searching</span></> : "Search"}
                   </Button>
-                )}
+                  {searchResults.length > 0 && (
+                    <Button 
+                      type="button" 
+                      size="lg" 
+                      className="h-10 md:h-12 px-3 md:px-4" 
+                      onClick={exportToCSV}
+                      aria-label="Download search results as CSV file"
+                    >
+                      <Download className="h-4 w-4 md:h-5 md:w-5" aria-hidden="true" />
+                      <span className="sr-only md:not-sr-only md:ml-2">Download</span>
+                    </Button>
+                  )}
+                </div>
               </div>
             </form>
 
@@ -348,7 +350,7 @@ export default function CallsignLookup() {
               <section 
                 aria-label="Search results" 
                 aria-live="polite"
-                className={`mx-auto mt-8 grid gap-4 ${
+                className={`mx-auto mt-4 md:mt-8 grid gap-3 md:gap-4 ${
                   searchResults.length === 1 
                     ? "max-w-2xl grid-cols-1" 
                     : "max-w-6xl grid-cols-1 md:grid-cols-2"
@@ -357,59 +359,58 @@ export default function CallsignLookup() {
                 {searchResults.length > 0 && (
                   <p className="sr-only">{searchResults.length} result{searchResults.length !== 1 ? 's' : ''} found</p>
                 )}
-                {searchResults.map((searchResult) => (
-                  <Card key={searchResult.primary.callsign} className="bg-card border-border text-left" role="article" aria-label={`Results for ${searchResult.primary.callsign}`}>
-                    <CardHeader>
-                      {(() => {
-                        // Use Amateur Radio record for address if available (more up-to-date)
-                        const amateurRecord = searchResult.related.find(r => isAmateurRadio(r.service)) || searchResult.primary
-                        return (
-                          <div>
-                            <CardTitle className="text-2xl text-primary">{formatName(amateurRecord.name)}</CardTitle>
-                            <CardDescription className="text-base">
-                              {formatStreet(amateurRecord.street)}
-                            </CardDescription>
-                            <CardDescription className="text-lg">
-                              {amateurRecord.city && amateurRecord.state 
-                                ? `${amateurRecord.city}, ${amateurRecord.state} ${amateurRecord.zip || ""}`.trim()
-                                : "Location not available"}
-                            </CardDescription>
-                          </div>
-                        )
-                      })()}
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {/* All Callsigns for this FRN */}
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-3">Associated Callsigns</p>
-                        <div className="flex flex-wrap gap-2">
+                {searchResults.map((searchResult) => {
+                  // Use Amateur Radio record for address if available (more up-to-date)
+                  const amateurRecord = searchResult.related.find(r => isAmateurRadio(r.service)) || searchResult.primary
+                  return (
+                    <Card key={searchResult.primary.callsign} className="bg-card border-border text-left" role="region" aria-labelledby={`result-name-${searchResult.primary.callsign}`}>
+                      <CardHeader className="p-3 md:p-6">
+                        <CardTitle id={`result-name-${searchResult.primary.callsign}`} className="text-2xl text-primary">
+                          <span className="sr-only">Operator name: </span>
+                          {formatName(amateurRecord.name)}
+                        </CardTitle>
+                        <address className="not-italic">
+                          <CardDescription className="text-base">
+                            {formatStreet(amateurRecord.street)}
+                          </CardDescription>
+                          <CardDescription className="text-lg">
+                            {amateurRecord.city && amateurRecord.state 
+                              ? `${amateurRecord.city}, ${amateurRecord.state} ${amateurRecord.zip || ""}`.trim()
+                              : "Location not available"}
+                          </CardDescription>
+                        </address>
+                      </CardHeader>
+                      <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+                        <h4 id={`callsigns-label-${searchResult.primary.callsign}`} className="text-sm text-muted-foreground mb-2 md:mb-3">Associated Callsigns</h4>
+                        <ul className="flex flex-wrap gap-1.5 md:gap-2" aria-labelledby={`callsigns-label-${searchResult.primary.callsign}`}>
                           {searchResult.related.map((record) => (
-                            <div
+                            <li
                               key={record.callsign}
-                              className={`px-4 py-2 rounded-lg flex items-center gap-2 bg-muted ${
+                              className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg flex items-center gap-1.5 md:gap-2 bg-muted ${
                                 record.callsign === searchResult.primary.callsign
                                   ? "border border-primary/50"
                                   : ""
                               }`}
+                              aria-label={`${record.callsign}, ${isAmateurRadio(record.service) ? `Amateur Radio${record.class ? `, ${formatLicenseClass(record.class)} class` : ''}` : 'GMRS'}${record.callsign === searchResult.primary.callsign ? ', searched callsign' : ''}`}
                             >
-                              <span className="font-bold text-foreground">
+                              <span className="font-bold text-foreground" aria-hidden="true">
                                 {record.callsign}
                               </span>
-                              <span className="text-xs px-2 py-0.5 rounded bg-accent/20 text-accent">
+                              <span className="text-xs px-2 py-0.5 rounded bg-accent/20 text-accent" aria-hidden="true">
                                 {isAmateurRadio(record.service) ? "Amateur" : "GMRS"}
                                 {isAmateurRadio(record.service) && record.class && ` (${formatLicenseClass(record.class)})`}
                               </span>
-                            </div>
+                            </li>
                           ))}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
                 
                 {notFound.length > 0 && (
-                  <Card className="bg-card border-border" role="alert">
-                    <CardContent className="py-6 text-center">
+                  <Card className="bg-card border-border" role="status" aria-live="polite">
+                    <CardContent className="py-4 md:py-6 text-center">
                       <p className="text-muted-foreground">No results found for: {notFound.join(", ")}</p>
                       <p className="text-sm text-muted-foreground mt-2">Make sure you entered valid US callsigns</p>
                     </CardContent>
@@ -417,8 +418,8 @@ export default function CallsignLookup() {
                 )}
 
                 {searchResults.length === 0 && notFound.length === 0 && (
-                  <Card className="bg-card border-border" role="alert">
-                    <CardContent className="py-8 text-center">
+                  <Card className="bg-card border-border" role="status" aria-live="polite">
+                    <CardContent className="py-6 md:py-8 text-center">
                       <p className="text-muted-foreground">No results found</p>
                       <p className="text-sm text-muted-foreground mt-2">Make sure you entered valid US callsigns</p>
                     </CardContent>
@@ -430,48 +431,48 @@ export default function CallsignLookup() {
         </section>
 
         {/* Feature Cards */}
-        <section className="py-16 bg-background" aria-labelledby="features-heading">
-            <div className="container mx-auto px-4">
-              <h3 id="features-heading" className="text-2xl font-semibold text-foreground text-center mb-10">
+        <section className="py-8 md:py-16 bg-background" aria-labelledby="features-heading">
+            <div className="container mx-auto px-3 md:px-4">
+              <h3 id="features-heading" className="text-xl md:text-2xl font-semibold text-foreground text-center mb-6 md:mb-10">
                 What You Can Find
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6" role="list">
+              <div className="grid grid-cols-3 md:grid-cols-3 gap-2 md:gap-6" role="list">
                 <Card className="bg-card border-border hover:shadow-lg hover:shadow-primary/10 transition-shadow" role="listitem">
-                  <CardHeader>
-                    <div className="h-12 w-12 rounded-lg bg-primary/20 flex items-center justify-center mb-2" aria-hidden="true">
-                      <Award className="h-6 w-6 text-primary" />
+                  <CardHeader className="p-3 md:p-6">
+                    <div className="h-8 w-8 md:h-12 md:w-12 rounded-lg bg-primary/20 flex items-center justify-center mb-1 md:mb-2" aria-hidden="true">
+                      <Award className="h-4 w-4 md:h-6 md:w-6 text-primary" />
                     </div>
-                    <CardTitle className="text-lg">License Class</CardTitle>
-                    <CardDescription>
+                    <CardTitle className="text-sm md:text-lg">License Class</CardTitle>
+                    <CardDescription className="text-xs md:text-sm hidden md:block">
                       View the operator&apos;s license class and privileges
                     </CardDescription>
-                    <span className="text-xs text-primary font-medium mt-2 inline-block">Amateur Radio Only</span>
+                    <span className="text-[10px] md:text-xs text-primary font-medium mt-1 md:mt-2 inline-block">Amateur Only</span>
                   </CardHeader>
                 </Card>
 
                 <Card className="bg-card border-border hover:shadow-lg hover:shadow-accent/10 transition-shadow" role="listitem">
-                  <CardHeader>
-                    <div className="h-12 w-12 rounded-lg bg-accent/20 flex items-center justify-center mb-2" aria-hidden="true">
-                      <MapPin className="h-6 w-6 text-accent" />
+                  <CardHeader className="p-3 md:p-6">
+                    <div className="h-8 w-8 md:h-12 md:w-12 rounded-lg bg-accent/20 flex items-center justify-center mb-1 md:mb-2" aria-hidden="true">
+                      <MapPin className="h-4 w-4 md:h-6 md:w-6 text-accent" />
                     </div>
-                    <CardTitle className="text-lg">Location</CardTitle>
-                    <CardDescription>
+                    <CardTitle className="text-sm md:text-lg">Location</CardTitle>
+                    <CardDescription className="text-xs md:text-sm hidden md:block">
                       Find the operator&apos;s address and grid square
                     </CardDescription>
-                    <span className="text-xs text-accent font-medium mt-2 inline-block">Amateur Radio + GMRS</span>
+                    <span className="text-[10px] md:text-xs text-accent font-medium mt-1 md:mt-2 inline-block">Amateur + GMRS</span>
                   </CardHeader>
                 </Card>
 
                 <Card className="bg-card border-border hover:shadow-lg hover:shadow-primary/10 transition-shadow" role="listitem">
-                  <CardHeader>
-                    <div className="h-12 w-12 rounded-lg bg-primary/20 flex items-center justify-center mb-2" aria-hidden="true">
-                      <Calendar className="h-6 w-6 text-primary" />
+                  <CardHeader className="p-3 md:p-6">
+                    <div className="h-8 w-8 md:h-12 md:w-12 rounded-lg bg-primary/20 flex items-center justify-center mb-1 md:mb-2" aria-hidden="true">
+                      <Calendar className="h-4 w-4 md:h-6 md:w-6 text-primary" />
                     </div>
-                    <CardTitle className="text-lg">License Dates</CardTitle>
-                    <CardDescription>
+                    <CardTitle className="text-sm md:text-lg">License Dates</CardTitle>
+                    <CardDescription className="text-xs md:text-sm hidden md:block">
                       Check issue date and expiration information
                     </CardDescription>
-                    <span className="text-xs text-accent font-medium mt-2 inline-block">Amateur Radio + GMRS</span>
+                    <span className="text-[10px] md:text-xs text-accent font-medium mt-1 md:mt-2 inline-block">Amateur + GMRS</span>
                   </CardHeader>
                 </Card>
               </div>
@@ -479,24 +480,24 @@ export default function CallsignLookup() {
           </section>
 
         {/* Stats Section */}
-        <section className="py-16 bg-card border-y border-border" aria-label="Service statistics">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center" role="list">
+        <section className="py-6 md:py-16 bg-card border-y border-border" aria-label="Service statistics">
+          <div className="container mx-auto px-3 md:px-4">
+            <div className="grid grid-cols-4 gap-2 md:gap-8 text-center" role="list">
               <div role="listitem">
-                <p className="text-3xl md:text-4xl font-bold text-primary" aria-label="Over 1 million US callsigns">1M+</p>
-                <p className="text-sm text-muted-foreground mt-1">US Callsigns</p>
+                <p className="text-xl md:text-4xl font-bold text-primary" aria-label="Over 1 million US callsigns">1M+</p>
+                <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-1">US Callsigns</p>
               </div>
               <div role="listitem">
-                <p className="text-3xl md:text-4xl font-bold text-primary">FCC</p>
-                <p className="text-sm text-muted-foreground mt-1">Database</p>
+                <p className="text-xl md:text-4xl font-bold text-primary">FCC</p>
+                <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-1">Database</p>
               </div>
               <div role="listitem">
-                <p className="text-3xl md:text-4xl font-bold text-primary">Real-time</p>
-                <p className="text-sm text-muted-foreground mt-1">Lookup</p>
+                <p className="text-xl md:text-4xl font-bold text-primary">Live</p>
+                <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-1">Lookup</p>
               </div>
               <div role="listitem">
-                <p className="text-3xl md:text-4xl font-bold text-primary">Free</p>
-                <p className="text-sm text-muted-foreground mt-1">To Use</p>
+                <p className="text-xl md:text-4xl font-bold text-primary">Free</p>
+                <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-1">To Use</p>
               </div>
             </div>
           </div>
@@ -504,14 +505,14 @@ export default function CallsignLookup() {
       </main>
 
       {/* Footer */}
-      <footer className="py-8 bg-card border-t border-border" role="contentinfo">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+      <footer className="py-4 md:py-8 bg-card border-t border-border" role="contentinfo">
+        <div className="container mx-auto px-3 md:px-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-2 md:gap-4">
             <div className="flex items-center gap-2">
-              <Radio className="h-5 w-5 text-primary" aria-hidden="true" />
-              <span className="font-semibold text-foreground">KE8RXN</span>
+              <Radio className="h-4 w-4 md:h-5 md:w-5 text-primary" aria-hidden="true" />
+              <span className="font-semibold text-sm md:text-base text-foreground">KE8RXN</span>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs md:text-sm text-muted-foreground">
               © {new Date().getFullYear()} KE8RXN Callsign Lookup. <span aria-label="Best regards from">73 de</span> KE8RXN.
             </p>
           </div>
