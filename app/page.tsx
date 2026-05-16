@@ -222,13 +222,13 @@ export default function CallsignLookup() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
         {/* Hero Section with Search */}
-        <section className="py-16 md:py-24 bg-gradient-to-b from-card to-background">
+        <section className="py-10 md:py-14 bg-gradient-to-b from-card to-background">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4 text-balance">
               Callsign Lookup
             </h2>
-            <p className="text-muted-foreground text-lg md:text-xl mb-10 max-w-2xl mx-auto text-pretty">
-              Search for any amateur radio or GMRS operator. Get license details, location, and contact information instantly.
+            <p className="text-muted-foreground text-lg md:text-xl mb-8 max-w-2xl mx-auto text-pretty">
+              Search for single or multiple amateur radio or GMRS callsigns. Get license and location details instantly.
             </p>
 
             {error && (
@@ -244,7 +244,7 @@ export default function CallsignLookup() {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     type="text"
-                    placeholder="Enter callsign(s) (e.g., KE8RXN, N8MJF)"
+                    placeholder="Enter callsigns"
                     value={callsign}
                     onChange={(e) => setCallsign(e.target.value.toUpperCase())}
                     className="pl-10 h-12 text-lg bg-card border-border"
