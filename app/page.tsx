@@ -207,7 +207,7 @@ export default function CallsignLookup() {
                         </CardDescription>
                         <CardDescription className="text-lg">
                           {searchResult.primary.city && searchResult.primary.state 
-                            ? `${searchResult.primary.city}, ${searchResult.primary.state}` 
+                            ? `${searchResult.primary.city}, ${searchResult.primary.state} ${searchResult.primary.zip || ""}`.trim()
                             : "Location not available"}
                         </CardDescription>
                       </div>
@@ -238,7 +238,8 @@ export default function CallsignLookup() {
                                   ? "bg-accent/20 text-accent"
                                   : "bg-primary/20 text-primary"
                               }`}>
-                                {record.service === "HA" ? "HAM" : "GMRS"}
+                                {record.service === "HA" ? "Amateur Radio" : "GMRS"}
+                                {record.service === "HA" && record.class && ` (${record.class})`}
                               </span>
                             </div>
                           ))}
