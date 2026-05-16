@@ -306,7 +306,7 @@ export default function CallsignLookup() {
                     placeholder="Enter callsigns"
                     value={callsign}
                     onChange={(e) => setCallsign(e.target.value.toUpperCase())}
-                    className="pl-10 h-12 text-lg bg-input border-border"
+                    className="pl-10 h-12 text-lg !bg-input dark:!bg-input border-border text-foreground"
                     aria-describedby="search-hint"
                   />
                   <span id="search-hint" className="sr-only">
