@@ -7,12 +7,18 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface CallsignRecord {
+  usid: string
   callsign: string
-  callsign_lc: string
-  full_name: string
-  full_address: string
-  service: string
+  status: string
+  service: string // "HA" = Amateur Radio, "ZA" = GMRS
+  name: string
+  street: string
+  city: string
+  state: string
+  zip: string
   frn: string
+  class: string | null // License class (E, G, T, etc.) - only for Amateur
+  prevcall: string | null
 }
 
 interface SearchResult {
@@ -151,11 +157,11 @@ export default function CallsignLookup() {
                   <Card className="bg-card border-border text-left">
                     <CardHeader>
                       <div>
-                        <CardTitle className="text-2xl text-primary">{searchResult.primary.full_name || "Name not available"}</CardTitle>
+                        <CardTitle className="text-2xl text-primary">{searchResult.primary.name || "Name not available"}</CardTitle>
                         <CardDescription className="text-lg">
-                          {searchResult.primary.full_address && searchResult.primary.full_address !== ", ," 
-                            ? searchResult.primary.full_address 
-                            : "Address not available"}
+                          {searchResult.primary.city && searchResult.primary.state 
+                            ? `${searchResult.primary.city}, ${searchResult.primary.state}` 
+                            : "Location not available"}
                         </CardDescription>
                       </div>
                     </CardHeader>
@@ -181,11 +187,11 @@ export default function CallsignLookup() {
                                 {record.callsign}
                               </span>
                               <span className={`text-xs px-2 py-0.5 rounded ${
-                                record.service === "Amateur Radio"
+                                record.service === "HA"
                                   ? "bg-accent/20 text-accent"
                                   : "bg-primary/20 text-primary"
                               }`}>
-                                {record.service === "Amateur Radio" ? "HAM" : "GMRS"}
+                                {record.service === "HA" ? "HAM" : "GMRS"}
                               </span>
                             </div>
                           ))}
