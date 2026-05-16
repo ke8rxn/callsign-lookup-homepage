@@ -93,7 +93,8 @@ export default function CallsignLookup() {
   const [callsign, setCallsign] = useState("")
   const [isDark, setIsDark] = useState(true)
   const [isSearching, setIsSearching] = useState(false)
-  const [searchResult, setSearchResult] = useState<SearchResult | null>(null)
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+  const [notFound, setNotFound] = useState<string[]>([])
   const [hasSearched, setHasSearched] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -119,22 +120,43 @@ export default function CallsignLookup() {
     setIsSearching(true)
     setHasSearched(true)
     setError(null)
+    setSearchResults([])
+    setNotFound([])
+
+    // Split by comma and clean up each callsign
+    const callsigns = callsign
+      .split(",")
+      .map(c => c.trim().toUpperCase())
+      .filter(c => c.length > 0)
 
     try {
-      const response = await fetch(`/api/fcc-search?callsign=${encodeURIComponent(callsign.trim())}`)
-      const data = await response.json()
-      
-      if (response.ok) {
-        setSearchResult(data)
-      } else if (response.status === 404) {
-        setSearchResult(null)
-      } else {
-        setError(data.error || "Search failed")
-        setSearchResult(null)
+      const results: SearchResult[] = []
+      const notFoundList: string[] = []
+
+      // Fetch all callsigns in parallel
+      const responses = await Promise.all(
+        callsigns.map(async (cs) => {
+          const response = await fetch(`/api/fcc-search?callsign=${encodeURIComponent(cs)}`)
+          return { callsign: cs, response }
+        })
+      )
+
+      for (const { callsign: cs, response } of responses) {
+        if (response.ok) {
+          const data = await response.json()
+          results.push(data)
+        } else if (response.status === 404) {
+          notFoundList.push(cs)
+        } else {
+          const data = await response.json()
+          setError(data.error || `Search failed for ${cs}`)
+        }
       }
+
+      setSearchResults(results)
+      setNotFound(notFoundList)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Search failed")
-      setSearchResult(null)
     } finally {
       setIsSearching(false)
     }
@@ -201,7 +223,7 @@ export default function CallsignLookup() {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     type="text"
-                    placeholder="Enter callsign (e.g., KE8RXN)"
+                    placeholder="Enter callsign(s) (e.g., KE8RXN, N8MJF)"
                     value={callsign}
                     onChange={(e) => setCallsign(e.target.value.toUpperCase())}
                     className="pl-10 h-12 text-lg bg-card border-border"
@@ -215,9 +237,9 @@ export default function CallsignLookup() {
 
             {/* Search Results */}
             {hasSearched && !isSearching && (
-              <div className="max-w-2xl mx-auto mt-8">
-                {searchResult ? (
-                  <Card className="bg-card border-border text-left">
+              <div className="max-w-2xl mx-auto mt-8 space-y-4">
+                {searchResults.map((searchResult) => (
+                  <Card key={searchResult.primary.callsign} className="bg-card border-border text-left">
                     <CardHeader>
                       {(() => {
                         // Use Amateur Radio record for address if available (more up-to-date)
@@ -264,11 +286,22 @@ export default function CallsignLookup() {
                       </div>
                     </CardContent>
                   </Card>
-                ) : (
+                ))}
+                
+                {notFound.length > 0 && (
+                  <Card className="bg-card border-border">
+                    <CardContent className="py-6 text-center">
+                      <p className="text-muted-foreground">No results found for: {notFound.join(", ")}</p>
+                      <p className="text-sm text-muted-foreground mt-2">Make sure you entered valid US callsigns</p>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {searchResults.length === 0 && notFound.length === 0 && (
                   <Card className="bg-card border-border">
                     <CardContent className="py-8 text-center">
-                      <p className="text-muted-foreground">No results found for &quot;{callsign}&quot;</p>
-                      <p className="text-sm text-muted-foreground mt-2">Make sure you entered a valid US callsign</p>
+                      <p className="text-muted-foreground">No results found</p>
+                      <p className="text-sm text-muted-foreground mt-2">Make sure you entered valid US callsigns</p>
                     </CardContent>
                   </Card>
                 )}
