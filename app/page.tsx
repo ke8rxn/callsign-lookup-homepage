@@ -46,12 +46,12 @@ function isAmateurRadio(service: string): boolean {
 function formatLicenseClass(classAbbr: string | null): string {
   if (!classAbbr) return ""
   const classMap: Record<string, string> = {
-    "E": "Amateur Extra",
+    "E": "Extra",
     "G": "General",
-    "T": "Technician",
+    "T": "Tech",
     "A": "Advanced",
     "N": "Novice",
-    "P": "Technician Plus",
+    "P": "Tech Plus",
   }
   return classMap[classAbbr.toUpperCase()] || classAbbr
 }
@@ -96,10 +96,25 @@ function formatStreet(street: string): string {
     }
   }
   
-  // Step 2: Add space between number and first letter
-  formatted = formatted.replace(/^(\d+)([A-Za-z])/, "$1 $2")
+  // Step 2: Handle ordinal street names (e.g., "1241140thAve" -> "1241 140th Ave")
+  // Look for ordinal pattern: digits followed by st/nd/rd/th, then an UPPERCASE letter (new word)
+  // This prevents matching "th" in words like "Thornapple"
+  const ordinalMatch = formatted.match(/^(\d+?)(\d{1,3})(st|nd|rd|th)([A-Z].*)$/i)
+  if (ordinalMatch) {
+    const [, houseNum, streetNum, ordinalSuffix, rest] = ordinalMatch
+    // Only treat as ordinal if the suffix is followed by uppercase (new word like "Ave")
+    if (/^[A-Z]/.test(rest)) {
+      formatted = `${houseNum} ${streetNum}${ordinalSuffix.toLowerCase()}${rest}`
+    } else {
+      // Not actually an ordinal, just add space after house number
+      formatted = formatted.replace(/^(\d+)([A-Za-z])/, "$1 $2")
+    }
+  } else {
+    // Step 3: Add space between number and first letter (only if no ordinal)
+    formatted = formatted.replace(/^(\d+)([A-Za-z])/, "$1 $2")
+  }
   
-  // Step 3: Find and isolate street suffix
+  // Step 4: Find and isolate street suffix
   // These must match as complete suffix words, not within other words
   // Order matters: check longer suffixes first to avoid partial matches
   const suffixPatterns = [
@@ -120,11 +135,11 @@ function formatStreet(street: string): string {
     }
   }
   
-  // Step 4: Now split remaining concatenated words
+  // Step 5: Now split remaining concatenated words
   // Only split on lowercase-to-uppercase transitions
   formatted = formatted.replace(/([a-z])([A-Z])/g, "$1 $2")
   
-  // Step 5: Add back the trailing direction
+  // Step 6: Add back the trailing direction
   if (trailingDirection) {
     formatted = formatted + " " + trailingDirection
   }
@@ -478,18 +493,18 @@ export default function CallsignLookup() {
                       </CardHeader>
                       <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
                         <h4 id={`callsigns-label-${searchResult.primary.callsign}`} className="text-sm text-muted-foreground mb-2 md:mb-3">Associated Callsigns</h4>
-                        <ul className="flex flex-wrap gap-1.5 md:gap-2" aria-labelledby={`callsigns-label-${searchResult.primary.callsign}`}>
+                        <ul className="flex flex-wrap gap-2" aria-labelledby={`callsigns-label-${searchResult.primary.callsign}`}>
                           {searchResult.related.map((record) => (
                             <li
                               key={record.callsign}
-                              className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg flex items-center gap-1.5 md:gap-2 bg-muted ${
+                              className={`px-3.5 py-2 md:px-4 md:py-2 rounded-lg flex items-center gap-2 bg-muted ${
                                 record.callsign === searchResult.primary.callsign
                                   ? "border border-primary/50"
                                   : ""
                               }`}
                               aria-label={`${record.callsign}, ${isAmateurRadio(record.service) ? `Amateur Radio${record.class ? `, ${formatLicenseClass(record.class)} class` : ''}` : 'GMRS'}${record.callsign === searchResult.primary.callsign ? ', searched callsign' : ''}`}
                             >
-                              <span className="font-bold text-foreground" aria-hidden="true">
+                              <span className="font-bold text-base text-foreground" aria-hidden="true">
                                 {record.callsign}
                               </span>
                               <span className="text-xs px-2 py-0.5 rounded bg-accent/20 text-accent" aria-hidden="true">
