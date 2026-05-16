@@ -68,67 +68,66 @@ function formatStreet(street: string): string {
   // If street already has spaces, return as-is (properly formatted)
   if (street.includes(" ")) return street
   
-  // Common street suffixes (case-insensitive matching)
-  const suffixPatterns = [
-    "Avenue", "Ave",
-    "Street", "St", 
-    "Drive", "Dr",
-    "Boulevard", "Blvd",
-    "Road", "Rd",
-    "Lane", "Ln",
-    "Court", "Ct",
-    "Place", "Pl",
-    "Way",
-    "Circle", "Cir",
-    "Parkway", "Pkwy",
-    "Terrace", "Ter",
-    "Trail", "Trl",
-    "Highway", "Hwy",
-    "Loop"
-  ]
-  
-  // Directions that appear at the end
+  // Directions that appear at the end (check these first, before suffixes)
   const directions = ["NW", "NE", "SW", "SE"]
   const singleDirections = ["N", "S", "E", "W"]
   
   let formatted = street
+  let trailingDirection = ""
   
-  // Step 1: Add space between number and first letter
+  // Step 1: Extract direction from end first (before any other processing)
+  for (const dir of directions) {
+    const regex = new RegExp(`(${dir})$`, "i")
+    if (regex.test(formatted)) {
+      trailingDirection = dir.toUpperCase()
+      formatted = formatted.replace(regex, "")
+      break
+    }
+  }
+  if (!trailingDirection) {
+    // Check single directions only if no multi-char direction found
+    for (const dir of singleDirections) {
+      const regex = new RegExp(`([a-z])(${dir})$`, "")
+      if (regex.test(formatted)) {
+        trailingDirection = dir
+        formatted = formatted.replace(new RegExp(`${dir}$`), "")
+        break
+      }
+    }
+  }
+  
+  // Step 2: Add space between number and first letter
   formatted = formatted.replace(/^(\d+)([A-Za-z])/, "$1 $2")
   
-  // Step 2: Handle direction at end (check multi-char first, then single)
-  for (const dir of directions) {
-    const regex = new RegExp(`([a-z])(${dir})$`, "i")
-    if (regex.test(formatted)) {
-      formatted = formatted.replace(regex, `$1 ${dir.toUpperCase()}`)
-      break
-    }
-  }
-  // Check single directions only at the very end after a lowercase letter
-  for (const dir of singleDirections) {
-    const regex = new RegExp(`([a-z])(${dir})$`, "")
-    if (regex.test(formatted)) {
-      formatted = formatted.replace(regex, `$1 ${dir}`)
-      break
-    }
-  }
-  
   // Step 3: Find and isolate street suffix
+  // These must match as complete suffix words, not within other words
+  // Order matters: check longer suffixes first to avoid partial matches
+  const suffixPatterns = [
+    "Avenue", "Boulevard", "Parkway", "Highway", "Terrace", "Circle", "Street", "Drive", "Place", "Trail", "Court", "Lane", "Road", "Loop", "Way",
+    "Blvd", "Pkwy", "Hwy", "Ter", "Cir", "Ave", "Trl", "Ct", "Ln", "Rd", "St", "Dr", "Pl"
+  ]
+  
   for (const suffix of suffixPatterns) {
-    // Match suffix that follows a lowercase letter and is followed by end, space, or uppercase
-    const regex = new RegExp(`([a-z])(${suffix})(?=[A-Z\\s]|$)`, "i")
+    // Match suffix at end of string (after direction removed) that follows lowercase
+    // The suffix must be at the end or followed by nothing (since we stripped direction)
+    const regex = new RegExp(`([a-z])(${suffix})$`, "i")
     const match = formatted.match(regex)
     if (match) {
       // Capitalize suffix properly
       const properSuffix = suffix.charAt(0).toUpperCase() + suffix.slice(1).toLowerCase()
-      formatted = formatted.replace(regex, `$1 ${properSuffix} `)
+      formatted = formatted.replace(regex, `$1 ${properSuffix}`)
       break
     }
   }
   
   // Step 4: Now split remaining concatenated words
-  // Only split on lowercase-to-uppercase transitions that aren't already spaced
+  // Only split on lowercase-to-uppercase transitions
   formatted = formatted.replace(/([a-z])([A-Z])/g, "$1 $2")
+  
+  // Step 5: Add back the trailing direction
+  if (trailingDirection) {
+    formatted = formatted + " " + trailingDirection
+  }
   
   // Clean up extra spaces
   return formatted.trim().replace(/\s+/g, " ")
