@@ -567,15 +567,16 @@ export default function CallsignLookup() {
                               )}
                               {/* Empty placeholder if no GMRS to maintain grid */}
                               {!gmrsCall && amateurCall && <div aria-hidden="true" />}
-                              {/* DMR ID pill - only for amateur callsigns */}
+                              {/* DMR ID pill - only show if DMR ID exists */}
                               {(() => {
                                 const dmrId = amateurCall ? dmrIds[amateurCall.callsign] : null
+                                if (!dmrId) return null
                                 return (
                                   <div
                                     className="px-3 py-2 md:px-4 md:py-2.5 rounded-lg flex items-center justify-between bg-muted"
-                                    aria-label={dmrId ? `DMR ID: ${dmrId}` : "DMR ID: Not available"}
+                                    aria-label={`DMR ID: ${dmrId}`}
                                   >
-                                    <span className="font-bold text-base text-foreground" aria-hidden="true">{dmrId || "—"}</span>
+                                    <span className="font-bold text-base text-foreground" aria-hidden="true">{dmrId}</span>
                                     <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary" aria-hidden="true">DMR ID</span>
                                   </div>
                                 )
