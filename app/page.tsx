@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Search, Radio, MapPin, Calendar, Moon, Sun, Loader2, Award, Download } from "lucide-react"
+import { Search, Radio, MapPin, Moon, Sun, Loader2, Award, Download, Users, Copy, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 interface CallsignRecord {
   usid: string
@@ -141,6 +142,13 @@ export default function CallsignLookup() {
   const [notFound, setNotFound] = useState<string[]>([])
   const [hasSearched, setHasSearched] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  const copyToClipboard = useCallback(async (text: string) => {
+    await navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }, [])
 
   useEffect(() => {
     const isDarkMode = document.documentElement.classList.contains("dark")
@@ -305,12 +313,54 @@ export default function CallsignLookup() {
             <a href="#" className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="Home page">
               Home
             </a>
-            <a href="#" className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="About this service">
-              About
-            </a>
-            <a href="#" className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="API documentation">
-              API
-            </a>
+            <Dialog>
+              <DialogTrigger asChild>
+                <button className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="View API documentation">
+                  API
+                </button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-lg" aria-describedby="api-dialog-description">
+                <DialogHeader>
+                  <DialogTitle>API Documentation</DialogTitle>
+                  <DialogDescription id="api-dialog-description">
+                    Use the KE8RXN Callsign API to look up amateur radio and GMRS license information.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4" role="region" aria-label="API details">
+                  <div>
+                    <h4 id="endpoint-label" className="text-sm font-medium mb-2">Endpoint</h4>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 bg-muted px-3 py-2 rounded-md text-sm font-mono break-all" aria-labelledby="endpoint-label">
+                        https://api.ke8rxnwx.net/crossref/
+                      </code>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => copyToClipboard("https://api.ke8rxnwx.net/crossref/")}
+                        aria-label="Copy API endpoint to clipboard"
+                      >
+                        {copied ? <Check className="h-4 w-4" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
+                      </Button>
+                      <span className="sr-only" role="status" aria-live="polite">
+                        {copied ? "API endpoint copied to clipboard" : ""}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 id="example-label" className="text-sm font-medium mb-2">Example Request</h4>
+                    <code className="block bg-muted px-3 py-2 rounded-md text-sm font-mono break-all" aria-labelledby="example-label">
+                      GET https://api.ke8rxnwx.net/crossref/KE8RXN
+                    </code>
+                  </div>
+                  <div>
+                    <h4 id="response-label" className="text-sm font-medium mb-2">Response</h4>
+                    <p className="text-sm text-muted-foreground" aria-labelledby="response-label">
+                      Returns JSON with callsign details including name, address, license class, and associated callsigns (amateur and GMRS) for the same FRN.
+                    </p>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
             <Button
               variant="ghost"
               size="icon"
@@ -331,8 +381,11 @@ export default function CallsignLookup() {
             <h2 id="search-heading" className="text-2xl md:text-5xl font-bold text-foreground mb-2 md:mb-4 text-balance">
               Callsign Lookup
             </h2>
-            <p className="text-muted-foreground text-sm md:text-xl mb-4 md:mb-8 max-w-2xl mx-auto text-pretty">
-              Search for single or multiple amateur radio or GMRS callsigns. Get license and location details instantly.
+            <p className="text-muted-foreground text-sm md:text-xl mb-1 md:mb-2 max-w-2xl mx-auto text-pretty">
+              Search for single or multiple amateur radio or GMRS callsigns.
+            </p>
+            <p className="text-muted-foreground text-sm md:text-xl mb-4 md:mb-8 max-w-2xl mx-auto">
+              Get license and location details instantly.
             </p>
 
             {error && (
@@ -481,6 +534,19 @@ export default function CallsignLookup() {
                 What You Can Find
               </h3>
               <div className="grid grid-cols-3 md:grid-cols-3 gap-2 md:gap-6" role="list">
+                <Card className="bg-card border-border hover:shadow-lg hover:shadow-accent/10 transition-shadow" role="listitem">
+                  <CardHeader className="p-3 md:p-6">
+                    <div className="h-8 w-8 md:h-12 md:w-12 rounded-lg bg-accent/20 flex items-center justify-center mb-1 md:mb-2" aria-hidden="true">
+                      <Users className="h-4 w-4 md:h-6 md:w-6 text-accent" />
+                    </div>
+                    <CardTitle className="text-sm md:text-lg">Associated Licenses</CardTitle>
+                    <CardDescription className="text-xs md:text-sm hidden md:block">
+                      View the operator&apos;s amateur radio and GMRS licenses
+                    </CardDescription>
+                    <span className="text-[10px] md:text-xs text-accent font-medium mt-1 md:mt-2 inline-block">Amateur + GMRS</span>
+                  </CardHeader>
+                </Card>
+
                 <Card className="bg-card border-border hover:shadow-lg hover:shadow-primary/10 transition-shadow" role="listitem">
                   <CardHeader className="p-3 md:p-6">
                     <div className="h-8 w-8 md:h-12 md:w-12 rounded-lg bg-primary/20 flex items-center justify-center mb-1 md:mb-2" aria-hidden="true">
@@ -501,20 +567,7 @@ export default function CallsignLookup() {
                     </div>
                     <CardTitle className="text-sm md:text-lg">Location</CardTitle>
                     <CardDescription className="text-xs md:text-sm hidden md:block">
-                      Find the operator&apos;s address and grid square
-                    </CardDescription>
-                    <span className="text-[10px] md:text-xs text-accent font-medium mt-1 md:mt-2 inline-block">Amateur + GMRS</span>
-                  </CardHeader>
-                </Card>
-
-                <Card className="bg-card border-border hover:shadow-lg hover:shadow-primary/10 transition-shadow" role="listitem">
-                  <CardHeader className="p-3 md:p-6">
-                    <div className="h-8 w-8 md:h-12 md:w-12 rounded-lg bg-primary/20 flex items-center justify-center mb-1 md:mb-2" aria-hidden="true">
-                      <Calendar className="h-4 w-4 md:h-6 md:w-6 text-primary" />
-                    </div>
-                    <CardTitle className="text-sm md:text-lg">License Dates</CardTitle>
-                    <CardDescription className="text-xs md:text-sm hidden md:block">
-                      Check issue date and expiration information
+                      Find the operator&apos;s address, name, and state
                     </CardDescription>
                     <span className="text-[10px] md:text-xs text-accent font-medium mt-1 md:mt-2 inline-block">Amateur + GMRS</span>
                   </CardHeader>
