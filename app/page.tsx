@@ -161,7 +161,19 @@ export default function CallsignLookup() {
   const [gridSquares, setGridSquares] = useState<Record<string, string>>({})
 
   const copyToClipboard = useCallback(async (text: string) => {
-    await navigator.clipboard.writeText(text)
+    try {
+      await navigator.clipboard.writeText(text)
+    } catch {
+      // Fallback for when clipboard API fails (e.g., inside dialogs)
+      const textarea = document.createElement("textarea")
+      textarea.value = text
+      textarea.style.position = "fixed"
+      textarea.style.opacity = "0"
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand("copy")
+      document.body.removeChild(textarea)
+    }
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }, [])
@@ -429,11 +441,11 @@ export default function CallsignLookup() {
                       <Button
                         variant="outline"
                         size="icon"
-                        className="hover:bg-background hover:text-foreground dark:hover:bg-input/30"
+                        className="hover:bg-muted hover:text-foreground hover:border-primary"
                         onClick={() => copyToClipboard("https://api.ke8rxnwx.net/crossref/")}
                         aria-label="Copy API endpoint to clipboard"
                       >
-                        {copied ? <Check className="h-4 w-4 text-green-500" aria-hidden="true" /> : <Copy className="h-4 w-4 text-foreground" aria-hidden="true" />}
+                        {copied ? <Check className="h-4 w-4 text-green-500" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
                       </Button>
                       <span className="sr-only" role="status" aria-live="polite">
                         {copied ? "API endpoint copied to clipboard" : ""}
