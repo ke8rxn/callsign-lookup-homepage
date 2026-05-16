@@ -357,70 +357,62 @@ export default function CallsignLookup() {
                 {searchResults.length > 0 && (
                   <p className="sr-only">{searchResults.length} result{searchResults.length !== 1 ? 's' : ''} found</p>
                 )}
-                {searchResults.map((searchResult) => (
-                  <Card key={searchResult.primary.callsign} className="bg-card border-border text-left" role="article" aria-label={`Results for ${searchResult.primary.callsign}`}>
-                    <CardHeader className="p-4 md:p-6">
-                      {(() => {
-                        // Use Amateur Radio record for address if available (more up-to-date)
-                        const amateurRecord = searchResult.related.find(r => isAmateurRadio(r.service)) || searchResult.primary
-                        return (
-                          <div>
-                            <CardTitle className="text-xl md:text-2xl text-primary">{formatName(amateurRecord.name)}</CardTitle>
-                            <CardDescription className="text-sm md:text-base">
-                              {formatStreet(amateurRecord.street)}
-                            </CardDescription>
-                            <CardDescription className="text-base md:text-lg">
-                              {amateurRecord.city && amateurRecord.state 
-                                ? `${amateurRecord.city}, ${amateurRecord.state} ${amateurRecord.zip || ""}`.trim()
-                                : "Location not available"}
-                            </CardDescription>
-                          </div>
-                        )
-                      })()}
-                    </CardHeader>
-                    <CardContent className="p-4 pt-0 md:p-6 md:pt-0 space-y-3 md:space-y-4">
-                      {/* All Callsigns for this FRN */}
-                      <div>
-                        <p className="text-xs md:text-sm text-muted-foreground mb-2 md:mb-3">Associated Callsigns</p>
-                        <div className="flex flex-wrap gap-1.5 md:gap-2">
+                {searchResults.map((searchResult) => {
+                  // Use Amateur Radio record for address if available (more up-to-date)
+                  const amateurRecord = searchResult.related.find(r => isAmateurRadio(r.service)) || searchResult.primary
+                  return (
+                    <Card key={searchResult.primary.callsign} className="bg-card border-border text-left" role="article" aria-labelledby={`result-name-${searchResult.primary.callsign}`}>
+                      <CardHeader className="p-3 pb-2 md:p-6 md:pb-4">
+                        <CardTitle id={`result-name-${searchResult.primary.callsign}`} className="text-base md:text-2xl text-primary">{formatName(amateurRecord.name)}</CardTitle>
+                        <CardDescription className="text-xs md:text-base leading-tight">
+                          <span className="sr-only">Address: </span>
+                          {formatStreet(amateurRecord.street)}, {amateurRecord.city && amateurRecord.state 
+                            ? `${amateurRecord.city}, ${amateurRecord.state} ${amateurRecord.zip || ""}`.trim()
+                            : "Location not available"}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+                        <p id={`callsigns-label-${searchResult.primary.callsign}`} className="text-[10px] md:text-sm text-muted-foreground mb-1.5 md:mb-3">Associated Callsigns</p>
+                        <ul className="flex flex-wrap gap-1 md:gap-2" role="list" aria-labelledby={`callsigns-label-${searchResult.primary.callsign}`}>
                           {searchResult.related.map((record) => (
-                            <div
+                            <li
                               key={record.callsign}
-                              className={`px-2.5 py-1.5 md:px-4 md:py-2 rounded-lg flex items-center gap-1.5 md:gap-2 bg-muted ${
+                              className={`px-2 py-1 md:px-4 md:py-2 rounded-md md:rounded-lg flex items-center gap-1 md:gap-2 bg-muted ${
                                 record.callsign === searchResult.primary.callsign
                                   ? "border border-primary/50"
                                   : ""
                               }`}
+                              role="listitem"
                             >
-                              <span className="font-bold text-sm md:text-base text-foreground">
+                              <span className="font-bold text-xs md:text-base text-foreground">
                                 {record.callsign}
                               </span>
-                              <span className="text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 rounded bg-accent/20 text-accent">
+                              <span className="text-[9px] md:text-xs px-1 md:px-2 py-0.5 rounded bg-accent/20 text-accent" aria-label={isAmateurRadio(record.service) ? `Amateur Radio${record.class ? `, ${formatLicenseClass(record.class)} class` : ''}` : 'GMRS'}>
                                 {isAmateurRadio(record.service) ? "Amateur" : "GMRS"}
                                 {isAmateurRadio(record.service) && record.class && ` (${formatLicenseClass(record.class)})`}
                               </span>
-                            </div>
+                            </li>
                           ))}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
                 
                 {notFound.length > 0 && (
-                  <Card className="bg-card border-border" role="alert">
-                    <CardContent className="py-4 md:py-6 text-center">
-                      <p className="text-sm md:text-base text-muted-foreground">No results found for: {notFound.join(", ")}</p>
-                      <p className="text-xs md:text-sm text-muted-foreground mt-1 md:mt-2">Make sure you entered valid US callsigns</p>
+                  <Card className="bg-card border-border" role="status" aria-live="polite">
+                    <CardContent className="py-3 md:py-6 text-center">
+                      <p className="text-xs md:text-base text-muted-foreground">No results found for: {notFound.join(", ")}</p>
+                      <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-2">Make sure you entered valid US callsigns</p>
                     </CardContent>
                   </Card>
                 )}
 
                 {searchResults.length === 0 && notFound.length === 0 && (
-                  <Card className="bg-card border-border" role="alert">
-                    <CardContent className="py-6 md:py-8 text-center">
-                      <p className="text-sm md:text-base text-muted-foreground">No results found</p>
-                      <p className="text-xs md:text-sm text-muted-foreground mt-1 md:mt-2">Make sure you entered valid US callsigns</p>
+                  <Card className="bg-card border-border" role="status" aria-live="polite">
+                    <CardContent className="py-4 md:py-8 text-center">
+                      <p className="text-xs md:text-base text-muted-foreground">No results found</p>
+                      <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-2">Make sure you entered valid US callsigns</p>
                     </CardContent>
                   </Card>
                 )}
