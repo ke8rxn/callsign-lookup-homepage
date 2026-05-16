@@ -185,11 +185,19 @@ export default function CallsignLookup() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Skip Link for Keyboard Navigation */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-lg"
+      >
+        Skip to main content
+      </a>
+
       {/* Header */}
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center" aria-hidden="true">
               <Radio className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
@@ -197,14 +205,14 @@ export default function CallsignLookup() {
               <p className="text-xs text-muted-foreground">Callsign Lookup</p>
             </div>
           </div>
-          <nav className="flex items-center gap-6">
-            <a href="#" className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <nav className="flex items-center gap-6" aria-label="Main navigation">
+            <a href="#" className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="Home page">
               Home
             </a>
-            <a href="#" className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#" className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="About this service">
               About
             </a>
-            <a href="#" className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#" className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="API documentation">
               API
             </a>
             <Button
@@ -213,18 +221,18 @@ export default function CallsignLookup() {
               onClick={toggleTheme}
               aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
             >
-              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              {isDark ? <Sun className="h-5 w-5" aria-hidden="true" /> : <Moon className="h-5 w-5" aria-hidden="true" />}
             </Button>
           </nav>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col">
+      <main id="main-content" className="flex-1 flex flex-col">
         {/* Hero Section with Search */}
-        <section className="py-10 md:py-14 bg-gradient-to-b from-card to-background">
+        <section className="py-10 md:py-14 bg-gradient-to-b from-card to-background" aria-labelledby="search-heading">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4 text-balance">
+            <h2 id="search-heading" className="text-3xl md:text-5xl font-bold text-foreground mb-4 text-balance">
               Callsign Lookup
             </h2>
             <p className="text-muted-foreground text-lg md:text-xl mb-8 max-w-2xl mx-auto text-pretty">
@@ -232,35 +240,52 @@ export default function CallsignLookup() {
             </p>
 
             {error && (
-              <div className="max-w-xl mx-auto mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
+              <div role="alert" className="max-w-xl mx-auto mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
                 {error}
               </div>
             )}
 
             {/* Search Bar */}
-            <form onSubmit={handleSearch} className="max-w-xl mx-auto">
+            <form onSubmit={handleSearch} className="max-w-xl mx-auto" role="search" aria-label="Callsign search">
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <label htmlFor="callsign-input" className="sr-only">Enter callsigns to search</label>
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" aria-hidden="true" />
                   <Input
+                    id="callsign-input"
                     type="text"
                     placeholder="Enter callsigns"
                     value={callsign}
                     onChange={(e) => setCallsign(e.target.value.toUpperCase())}
                     className="pl-10 h-12 text-lg bg-card border-border"
+                    aria-describedby="search-hint"
                   />
+                  <span id="search-hint" className="sr-only">
+                    Enter one or more callsigns separated by commas, semicolons, or spaces
+                  </span>
                 </div>
-                <Button type="submit" size="lg" className="h-12 px-8" disabled={isSearching}>
-                  {isSearching ? <Loader2 className="h-5 w-5 animate-spin" /> : "Search"}
+                <Button type="submit" size="lg" className="h-12 px-8" disabled={isSearching} aria-busy={isSearching}>
+                  {isSearching ? <><Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /><span className="sr-only">Searching</span></> : "Search"}
                 </Button>
               </div>
             </form>
 
             {/* Search Results */}
             {hasSearched && !isSearching && (
-              <div className="max-w-2xl mx-auto mt-8 space-y-4">
+              <section 
+                aria-label="Search results" 
+                aria-live="polite"
+                className={`mx-auto mt-8 grid gap-4 ${
+                  searchResults.length === 1 
+                    ? "max-w-2xl grid-cols-1" 
+                    : "max-w-6xl grid-cols-1 md:grid-cols-2"
+                }`}
+              >
+                {searchResults.length > 0 && (
+                  <p className="sr-only">{searchResults.length} result{searchResults.length !== 1 ? 's' : ''} found</p>
+                )}
                 {searchResults.map((searchResult) => (
-                  <Card key={searchResult.primary.callsign} className="bg-card border-border text-left">
+                  <Card key={searchResult.primary.callsign} className="bg-card border-border text-left" role="article" aria-label={`Results for ${searchResult.primary.callsign}`}>
                     <CardHeader>
                       {(() => {
                         // Use Amateur Radio record for address if available (more up-to-date)
@@ -298,7 +323,7 @@ export default function CallsignLookup() {
                                 {record.callsign}
                               </span>
                               <span className="text-xs px-2 py-0.5 rounded bg-accent/20 text-accent">
-                                {isAmateurRadio(record.service) ? "Amateur Radio" : "GMRS"}
+                                {isAmateurRadio(record.service) ? "Amateur" : "GMRS"}
                                 {isAmateurRadio(record.service) && record.class && ` (${formatLicenseClass(record.class)})`}
                               </span>
                             </div>
@@ -310,7 +335,7 @@ export default function CallsignLookup() {
                 ))}
                 
                 {notFound.length > 0 && (
-                  <Card className="bg-card border-border">
+                  <Card className="bg-card border-border" role="alert">
                     <CardContent className="py-6 text-center">
                       <p className="text-muted-foreground">No results found for: {notFound.join(", ")}</p>
                       <p className="text-sm text-muted-foreground mt-2">Make sure you entered valid US callsigns</p>
@@ -319,28 +344,28 @@ export default function CallsignLookup() {
                 )}
 
                 {searchResults.length === 0 && notFound.length === 0 && (
-                  <Card className="bg-card border-border">
+                  <Card className="bg-card border-border" role="alert">
                     <CardContent className="py-8 text-center">
                       <p className="text-muted-foreground">No results found</p>
                       <p className="text-sm text-muted-foreground mt-2">Make sure you entered valid US callsigns</p>
                     </CardContent>
                   </Card>
                 )}
-              </div>
+              </section>
             )}
           </div>
         </section>
 
         {/* Feature Cards */}
-        <section className="py-16 bg-background">
+        <section className="py-16 bg-background" aria-labelledby="features-heading">
             <div className="container mx-auto px-4">
-              <h3 className="text-2xl font-semibold text-foreground text-center mb-10">
+              <h3 id="features-heading" className="text-2xl font-semibold text-foreground text-center mb-10">
                 What You Can Find
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="bg-card border-border hover:shadow-lg hover:shadow-primary/10 transition-shadow">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6" role="list">
+                <Card className="bg-card border-border hover:shadow-lg hover:shadow-primary/10 transition-shadow" role="listitem">
                   <CardHeader>
-                    <div className="h-12 w-12 rounded-lg bg-primary/20 flex items-center justify-center mb-2">
+                    <div className="h-12 w-12 rounded-lg bg-primary/20 flex items-center justify-center mb-2" aria-hidden="true">
                       <Award className="h-6 w-6 text-primary" />
                     </div>
                     <CardTitle className="text-lg">License Class</CardTitle>
@@ -351,9 +376,9 @@ export default function CallsignLookup() {
                   </CardHeader>
                 </Card>
 
-                <Card className="bg-card border-border hover:shadow-lg hover:shadow-accent/10 transition-shadow">
+                <Card className="bg-card border-border hover:shadow-lg hover:shadow-accent/10 transition-shadow" role="listitem">
                   <CardHeader>
-                    <div className="h-12 w-12 rounded-lg bg-accent/20 flex items-center justify-center mb-2">
+                    <div className="h-12 w-12 rounded-lg bg-accent/20 flex items-center justify-center mb-2" aria-hidden="true">
                       <MapPin className="h-6 w-6 text-accent" />
                     </div>
                     <CardTitle className="text-lg">Location</CardTitle>
@@ -364,9 +389,9 @@ export default function CallsignLookup() {
                   </CardHeader>
                 </Card>
 
-                <Card className="bg-card border-border hover:shadow-lg hover:shadow-primary/10 transition-shadow">
+                <Card className="bg-card border-border hover:shadow-lg hover:shadow-primary/10 transition-shadow" role="listitem">
                   <CardHeader>
-                    <div className="h-12 w-12 rounded-lg bg-primary/20 flex items-center justify-center mb-2">
+                    <div className="h-12 w-12 rounded-lg bg-primary/20 flex items-center justify-center mb-2" aria-hidden="true">
                       <Calendar className="h-6 w-6 text-primary" />
                     </div>
                     <CardTitle className="text-lg">License Dates</CardTitle>
@@ -376,29 +401,27 @@ export default function CallsignLookup() {
                     <span className="text-xs text-accent font-medium mt-2 inline-block">Amateur Radio + GMRS</span>
                   </CardHeader>
                 </Card>
-
-
               </div>
             </div>
           </section>
 
         {/* Stats Section */}
-        <section className="py-16 bg-card border-y border-border">
+        <section className="py-16 bg-card border-y border-border" aria-label="Service statistics">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              <div>
-                <p className="text-3xl md:text-4xl font-bold text-primary">1M+</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center" role="list">
+              <div role="listitem">
+                <p className="text-3xl md:text-4xl font-bold text-primary" aria-label="Over 1 million US callsigns">1M+</p>
                 <p className="text-sm text-muted-foreground mt-1">US Callsigns</p>
               </div>
-              <div>
+              <div role="listitem">
                 <p className="text-3xl md:text-4xl font-bold text-primary">FCC</p>
                 <p className="text-sm text-muted-foreground mt-1">Database</p>
               </div>
-              <div>
+              <div role="listitem">
                 <p className="text-3xl md:text-4xl font-bold text-primary">Real-time</p>
                 <p className="text-sm text-muted-foreground mt-1">Lookup</p>
               </div>
-              <div>
+              <div role="listitem">
                 <p className="text-3xl md:text-4xl font-bold text-primary">Free</p>
                 <p className="text-sm text-muted-foreground mt-1">To Use</p>
               </div>
@@ -408,15 +431,15 @@ export default function CallsignLookup() {
       </main>
 
       {/* Footer */}
-      <footer className="py-8 bg-card border-t border-border">
+      <footer className="py-8 bg-card border-t border-border" role="contentinfo">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <Radio className="h-5 w-5 text-primary" />
+              <Radio className="h-5 w-5 text-primary" aria-hidden="true" />
               <span className="font-semibold text-foreground">KE8RXN</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} KE8RXN Callsign Lookup. 73 de KE8RXN.
+              © {new Date().getFullYear()} KE8RXN Callsign Lookup. <span aria-label="Best regards from">73 de</span> KE8RXN.
             </p>
           </div>
         </div>
