@@ -300,7 +300,7 @@ export default function CallsignLookup() {
             {/* Search Bar */}
             <form onSubmit={handleSearch} className="max-w-xl mx-auto" role="search" aria-label="Callsign search">
               <div className="flex gap-1.5 md:gap-2">
-                <div className="relative flex-1">
+                <div className="relative flex-1 md:flex-none md:w-[calc(100%-theme(spacing.32))]">
                   <label htmlFor="callsign-input" className="sr-only">Enter callsigns to search</label>
                   <Search className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground" aria-hidden="true" />
                   <Input
@@ -318,28 +318,30 @@ export default function CallsignLookup() {
                         setError(null)
                       }
                     }}
-                    className="pl-8 md:pl-10 h-10 md:h-12 text-base md:text-lg !bg-input dark:!bg-input border-border text-foreground"
+                    className="pl-8 md:pl-10 h-10 md:h-12 text-base md:text-lg !bg-input dark:!bg-input border-border text-foreground w-full"
                     aria-describedby="search-hint"
                   />
                   <span id="search-hint" className="sr-only">
                     Enter one or more callsigns separated by commas, semicolons, or spaces
                   </span>
                 </div>
-                <Button type="submit" size="lg" className="h-10 md:h-12 px-4 md:px-8 text-sm md:text-base" disabled={isSearching} aria-busy={isSearching}>
-                  {isSearching ? <><Loader2 className="h-4 w-4 md:h-5 md:w-5 animate-spin" aria-hidden="true" /><span className="sr-only">Searching</span></> : "Search"}
-                </Button>
-                {searchResults.length > 0 && (
-                  <Button 
-                    type="button" 
-                    size="lg" 
-                    className="h-10 md:h-12 px-3 md:px-4" 
-                    onClick={exportToCSV}
-                    aria-label="Download search results as CSV file"
-                  >
-                    <Download className="h-4 w-4 md:h-5 md:w-5" aria-hidden="true" />
-                    <span className="sr-only md:not-sr-only md:ml-2">Download</span>
+                <div className="flex gap-1.5 md:gap-2 shrink-0">
+                  <Button type="submit" size="lg" className="h-10 md:h-12 px-4 md:px-8 text-sm md:text-base" disabled={isSearching} aria-busy={isSearching}>
+                    {isSearching ? <><Loader2 className="h-4 w-4 md:h-5 md:w-5 animate-spin" aria-hidden="true" /><span className="sr-only">Searching</span></> : "Search"}
                   </Button>
-                )}
+                  {searchResults.length > 0 && (
+                    <Button 
+                      type="button" 
+                      size="lg" 
+                      className="h-10 md:h-12 px-3 md:px-4" 
+                      onClick={exportToCSV}
+                      aria-label="Download search results as CSV file"
+                    >
+                      <Download className="h-4 w-4 md:h-5 md:w-5" aria-hidden="true" />
+                      <span className="sr-only md:not-sr-only md:ml-2">Download</span>
+                    </Button>
+                  )}
+                </div>
               </div>
             </form>
 
