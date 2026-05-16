@@ -219,17 +219,23 @@ export default function CallsignLookup() {
                 {searchResult ? (
                   <Card className="bg-card border-border text-left">
                     <CardHeader>
-                      <div>
-                        <CardTitle className="text-2xl text-primary">{formatName(searchResult.primary.name)}</CardTitle>
-                        <CardDescription className="text-base">
-                          {formatStreet(searchResult.primary.street)}
-                        </CardDescription>
-                        <CardDescription className="text-lg">
-                          {searchResult.primary.city && searchResult.primary.state 
-                            ? `${searchResult.primary.city}, ${searchResult.primary.state} ${searchResult.primary.zip || ""}`.trim()
-                            : "Location not available"}
-                        </CardDescription>
-                      </div>
+                      {(() => {
+                        // Use Amateur Radio record for address if available (more up-to-date)
+                        const amateurRecord = searchResult.related.find(r => isAmateurRadio(r.service)) || searchResult.primary
+                        return (
+                          <div>
+                            <CardTitle className="text-2xl text-primary">{formatName(amateurRecord.name)}</CardTitle>
+                            <CardDescription className="text-base">
+                              {formatStreet(amateurRecord.street)}
+                            </CardDescription>
+                            <CardDescription className="text-lg">
+                              {amateurRecord.city && amateurRecord.state 
+                                ? `${amateurRecord.city}, ${amateurRecord.state} ${amateurRecord.zip || ""}`.trim()
+                                : "Location not available"}
+                            </CardDescription>
+                          </div>
+                        )
+                      })()}
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {/* All Callsigns for this FRN */}
