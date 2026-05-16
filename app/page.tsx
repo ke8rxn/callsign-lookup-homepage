@@ -185,7 +185,7 @@ export default function CallsignLookup() {
     try {
       // Fetch and cache the zip-to-grid JSON on first use
       if (!gridMapCache.current) {
-        const response = await fetch("https://callsign.ke8rxnwx.net/zip_to_grid.json")
+        const response = await fetch("https://callsigns.ke8rxnwx.net/zip_to_grid.json")
         if (!response.ok) return null
         gridMapCache.current = await response.json()
       }

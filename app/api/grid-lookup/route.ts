@@ -5,7 +5,7 @@ let gridCache: Record<string, string> | null = null
 async function getGridMap(): Promise<Record<string, string>> {
   if (gridCache) return gridCache
 
-  const response = await fetch("https://callsign.ke8rxnwx.net/zip_to_grid.json", {
+  const response = await fetch("https://callsigns.ke8rxnwx.net/zip_to_grid.json", {
     next: { revalidate: 86400 }, // Cache for 24 hours
   })
 
