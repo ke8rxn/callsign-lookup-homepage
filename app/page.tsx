@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Search, Radio, MapPin, Calendar, Moon, Sun, Loader2, Award, Download } from "lucide-react"
+import { Search, Radio, MapPin, Moon, Sun, Loader2, Award, Download, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -481,6 +481,19 @@ export default function CallsignLookup() {
                 What You Can Find
               </h3>
               <div className="grid grid-cols-3 md:grid-cols-3 gap-2 md:gap-6" role="list">
+                <Card className="bg-card border-border hover:shadow-lg hover:shadow-accent/10 transition-shadow" role="listitem">
+                  <CardHeader className="p-3 md:p-6">
+                    <div className="h-8 w-8 md:h-12 md:w-12 rounded-lg bg-accent/20 flex items-center justify-center mb-1 md:mb-2" aria-hidden="true">
+                      <Users className="h-4 w-4 md:h-6 md:w-6 text-accent" />
+                    </div>
+                    <CardTitle className="text-sm md:text-lg">Associated Licenses</CardTitle>
+                    <CardDescription className="text-xs md:text-sm hidden md:block">
+                      View the operator&apos;s amateur radio and GMRS licenses
+                    </CardDescription>
+                    <span className="text-[10px] md:text-xs text-accent font-medium mt-1 md:mt-2 inline-block">Amateur + GMRS</span>
+                  </CardHeader>
+                </Card>
+
                 <Card className="bg-card border-border hover:shadow-lg hover:shadow-primary/10 transition-shadow" role="listitem">
                   <CardHeader className="p-3 md:p-6">
                     <div className="h-8 w-8 md:h-12 md:w-12 rounded-lg bg-primary/20 flex items-center justify-center mb-1 md:mb-2" aria-hidden="true">
@@ -501,20 +514,7 @@ export default function CallsignLookup() {
                     </div>
                     <CardTitle className="text-sm md:text-lg">Location</CardTitle>
                     <CardDescription className="text-xs md:text-sm hidden md:block">
-                      Find the operator&apos;s address and grid square
-                    </CardDescription>
-                    <span className="text-[10px] md:text-xs text-accent font-medium mt-1 md:mt-2 inline-block">Amateur + GMRS</span>
-                  </CardHeader>
-                </Card>
-
-                <Card className="bg-card border-border hover:shadow-lg hover:shadow-primary/10 transition-shadow" role="listitem">
-                  <CardHeader className="p-3 md:p-6">
-                    <div className="h-8 w-8 md:h-12 md:w-12 rounded-lg bg-primary/20 flex items-center justify-center mb-1 md:mb-2" aria-hidden="true">
-                      <Calendar className="h-4 w-4 md:h-6 md:w-6 text-primary" />
-                    </div>
-                    <CardTitle className="text-sm md:text-lg">License Dates</CardTitle>
-                    <CardDescription className="text-xs md:text-sm hidden md:block">
-                      Check issue date and expiration information
+                      Find the operator&apos;s address, name, and state
                     </CardDescription>
                     <span className="text-[10px] md:text-xs text-accent font-medium mt-1 md:mt-2 inline-block">Amateur + GMRS</span>
                   </CardHeader>
