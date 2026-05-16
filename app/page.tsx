@@ -48,10 +48,10 @@ function formatLicenseClass(classAbbr: string | null): string {
   const classMap: Record<string, string> = {
     "E": "Extra",
     "G": "General",
-    "T": "Technician",
+    "T": "Tech",
     "A": "Advanced",
     "N": "Novice",
-    "P": "Technician Plus",
+    "P": "Tech Plus",
   }
   return classMap[classAbbr.toUpperCase()] || classAbbr
 }
