@@ -10,7 +10,7 @@ interface CallsignRecord {
   usid: string
   callsign: string
   status: string
-  service: string // "HA" = Amateur Radio, "ZA" = GMRS
+  service: string // "HA"/"HV" = Amateur Radio, "ZA" = GMRS
   name: string
   street: string
   city: string
@@ -34,6 +34,11 @@ function formatName(name: string): string {
     return `${parts[1]} ${parts[0]}`
   }
   return name
+}
+
+// Check if service code is Amateur Radio (HA = Amateur, HV = Vanity)
+function isAmateurRadio(service: string): boolean {
+  return service === "HA" || service === "HV"
 }
 
 // Convert license class abbreviation to full name
@@ -248,12 +253,12 @@ export default function CallsignLookup() {
                                 {record.callsign}
                               </span>
                               <span className={`text-xs px-2 py-0.5 rounded ${
-                                record.service === "HA"
+                                isAmateurRadio(record.service)
                                   ? "bg-accent/20 text-accent"
                                   : "bg-primary/20 text-primary"
                               }`}>
-                                {record.service === "HA" ? "Amateur Radio" : "GMRS"}
-                                {record.service === "HA" && record.class && ` (${formatLicenseClass(record.class)})`}
+                                {isAmateurRadio(record.service) ? "Amateur Radio" : "GMRS"}
+                                {isAmateurRadio(record.service) && record.class && ` (${formatLicenseClass(record.class)})`}
                               </span>
                             </div>
                           ))}
