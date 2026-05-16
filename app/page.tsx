@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Search, Radio, MapPin, Moon, Sun, Loader2, Award, Download, Users } from "lucide-react"
+import { Search, Radio, MapPin, Moon, Sun, Loader2, Award, Download, Users, Copy, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 interface CallsignRecord {
   usid: string
@@ -141,6 +142,13 @@ export default function CallsignLookup() {
   const [notFound, setNotFound] = useState<string[]>([])
   const [hasSearched, setHasSearched] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  const copyToClipboard = useCallback(async (text: string) => {
+    await navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }, [])
 
   useEffect(() => {
     const isDarkMode = document.documentElement.classList.contains("dark")
@@ -305,9 +313,51 @@ export default function CallsignLookup() {
             <a href="#" className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="Home page">
               Home
             </a>
-            <a href="#" className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="API documentation">
-              API
-            </a>
+            <Dialog>
+              <DialogTrigger asChild>
+                <button className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="View API documentation">
+                  API
+                </button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>API Documentation</DialogTitle>
+                  <DialogDescription>
+                    Use the KE8RXN Callsign API to look up amateur radio and GMRS license information.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Endpoint</h4>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 bg-muted px-3 py-2 rounded-md text-sm font-mono break-all">
+                        https://api.ke8rxnwx.net/crossref/
+                      </code>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => copyToClipboard("https://api.ke8rxnwx.net/crossref/")}
+                        aria-label={copied ? "Copied" : "Copy API endpoint"}
+                      >
+                        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Example Request</h4>
+                    <code className="block bg-muted px-3 py-2 rounded-md text-sm font-mono break-all">
+                      GET https://api.ke8rxnwx.net/crossref/KE8RXN
+                    </code>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Response</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Returns JSON with callsign details including name, address, license class, and associated callsigns (amateur and GMRS) for the same FRN.
+                    </p>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
             <Button
               variant="ghost"
               size="icon"
