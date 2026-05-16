@@ -429,10 +429,11 @@ export default function CallsignLookup() {
                       <Button
                         variant="outline"
                         size="icon"
+                        className="hover:bg-transparent hover:border-border"
                         onClick={() => copyToClipboard("https://api.ke8rxnwx.net/crossref/")}
                         aria-label="Copy API endpoint to clipboard"
                       >
-                        {copied ? <Check className="h-4 w-4" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
+                        {copied ? <Check className="h-4 w-4 text-green-500" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
                       </Button>
                       <span className="sr-only" role="status" aria-live="polite">
                         {copied ? "API endpoint copied to clipboard" : ""}
