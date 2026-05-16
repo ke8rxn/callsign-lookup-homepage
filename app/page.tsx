@@ -129,6 +129,27 @@ export default function CallsignLookup() {
       .map(c => c.trim().toUpperCase())
       .filter(c => c.length > 0)
 
+    // Validate input
+    if (callsigns.length === 0) {
+      setError("Please enter at least one callsign")
+      setIsSearching(false)
+      return
+    }
+
+    if (callsigns.length > 10) {
+      setError("Please enter no more than 10 callsigns at a time")
+      setIsSearching(false)
+      return
+    }
+
+    // Validate each callsign format (alphanumeric, 3-7 characters)
+    const invalidCallsigns = callsigns.filter(cs => !/^[A-Z0-9]{3,7}$/.test(cs))
+    if (invalidCallsigns.length > 0) {
+      setError(`Invalid callsign format: ${invalidCallsigns.join(", ")}. Callsigns must be 3-7 alphanumeric characters.`)
+      setIsSearching(false)
+      return
+    }
+
     try {
       const results: SearchResult[] = []
       const notFoundList: string[] = []
