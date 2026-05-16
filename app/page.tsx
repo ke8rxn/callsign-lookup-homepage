@@ -97,11 +97,18 @@ function formatStreet(street: string): string {
   }
   
   // Step 2: Handle ordinal street names (e.g., "1241140thAve" -> "1241 140th Ave")
-  // Look for ordinal pattern: digits followed by st/nd/rd/th
-  const ordinalMatch = formatted.match(/^(\d+?)(\d{1,3})(st|nd|rd|th)(.*)$/i)
+  // Look for ordinal pattern: digits followed by st/nd/rd/th, then an UPPERCASE letter (new word)
+  // This prevents matching "th" in words like "Thornapple"
+  const ordinalMatch = formatted.match(/^(\d+?)(\d{1,3})(st|nd|rd|th)([A-Z].*)$/i)
   if (ordinalMatch) {
     const [, houseNum, streetNum, ordinalSuffix, rest] = ordinalMatch
-    formatted = `${houseNum} ${streetNum}${ordinalSuffix.toLowerCase()}${rest}`
+    // Only treat as ordinal if the suffix is followed by uppercase (new word like "Ave")
+    if (/^[A-Z]/.test(rest)) {
+      formatted = `${houseNum} ${streetNum}${ordinalSuffix.toLowerCase()}${rest}`
+    } else {
+      // Not actually an ordinal, just add space after house number
+      formatted = formatted.replace(/^(\d+)([A-Za-z])/, "$1 $2")
+    }
   } else {
     // Step 3: Add space between number and first letter (only if no ordinal)
     formatted = formatted.replace(/^(\d+)([A-Za-z])/, "$1 $2")
