@@ -441,7 +441,7 @@ export default function CallsignLookup() {
                       <Button
                         variant="outline"
                         size="icon"
-                        className="hover:bg-muted hover:text-foreground hover:border-primary"
+                        className="hover:bg-muted hover:text-foreground hover:border-primary hover:shadow-[0_0_6px_rgba(59,130,246,0.5)]"
                         onClick={() => copyToClipboard("https://api.ke8rxnwx.net/crossref/")}
                         aria-label="Copy API endpoint to clipboard"
                       >
