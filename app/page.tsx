@@ -157,11 +157,24 @@ export default function CallsignLookup() {
   const [hasSearched, setHasSearched] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [dmrIds, setDmrIds] = useState<Record<string, string>>({})
 
   const copyToClipboard = useCallback(async (text: string) => {
     await navigator.clipboard.writeText(text)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }, [])
+
+  // Fetch DMR ID for a callsign via server-side proxy (avoids CORS issues)
+  const fetchDmrId = useCallback(async (amateurCallsign: string): Promise<string | null> => {
+    try {
+      const response = await fetch(`/api/dmr-lookup?callsign=${encodeURIComponent(amateurCallsign)}`)
+      if (!response.ok) return null
+      const data = await response.json()
+      return data.dmrId || null
+    } catch {
+      return null
+    }
   }, [])
 
   useEffect(() => {
@@ -240,6 +253,7 @@ export default function CallsignLookup() {
     setError(null)
     setSearchResults([])
     setNotFound([])
+    setDmrIds({})
 
     // Split by comma, semicolon, or whitespace and clean up each callsign
     const callsigns = callsign
@@ -294,12 +308,34 @@ export default function CallsignLookup() {
 
       setSearchResults(results)
       setNotFound(notFoundList)
+
+      // Fetch DMR IDs for amateur callsigns (in parallel, non-blocking)
+      const amateurCallsigns = results
+        .flatMap(r => r.related.filter(rec => isAmateurRadio(rec.service)))
+        .map(rec => rec.callsign)
+      
+      if (amateurCallsigns.length > 0) {
+        Promise.all(
+          amateurCallsigns.map(async (cs) => {
+            const dmrId = await fetchDmrId(cs)
+            return { callsign: cs, dmrId }
+          })
+        ).then((dmrResults) => {
+          const dmrMap: Record<string, string> = {}
+          for (const { callsign: cs, dmrId } of dmrResults) {
+            if (dmrId) {
+              dmrMap[cs] = dmrId
+            }
+          }
+          setDmrIds(dmrMap)
+        })
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Search failed")
     } finally {
       setIsSearching(false)
     }
-  }, [callsign])
+  }, [callsign, fetchDmrId])
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -492,28 +528,69 @@ export default function CallsignLookup() {
                         </address>
                       </CardHeader>
                       <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-                        <h4 id={`callsigns-label-${searchResult.primary.callsign}`} className="text-sm text-muted-foreground mb-2 md:mb-3">Associated Callsigns</h4>
-                        <ul className="flex flex-wrap gap-2" aria-labelledby={`callsigns-label-${searchResult.primary.callsign}`}>
-                          {searchResult.related.map((record) => (
-                            <li
-                              key={record.callsign}
-                              className={`px-3.5 py-2 md:px-4 md:py-2 rounded-lg flex items-center gap-2 bg-muted ${
-                                record.callsign === searchResult.primary.callsign
-                                  ? "border border-primary/50"
-                                  : ""
-                              }`}
-                              aria-label={`${record.callsign}, ${isAmateurRadio(record.service) ? `Amateur Radio${record.class ? `, ${formatLicenseClass(record.class)} class` : ''}` : 'GMRS'}${record.callsign === searchResult.primary.callsign ? ', searched callsign' : ''}`}
-                            >
-                              <span className="font-bold text-base text-foreground" aria-hidden="true">
-                                {record.callsign}
-                              </span>
-                              <span className="text-xs px-2 py-0.5 rounded bg-accent/20 text-accent" aria-hidden="true">
-                                {isAmateurRadio(record.service) ? "Amateur" : "GMRS"}
-                                {isAmateurRadio(record.service) && record.class && ` (${formatLicenseClass(record.class)})`}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
+                        {(() => {
+                          const amateurCall = searchResult.related.find(r => isAmateurRadio(r.service))
+                          const gmrsCall = searchResult.related.find(r => r.service === "ZA")
+                          return (
+                            <div className="grid grid-cols-2 gap-2" aria-label="License and station information">
+                              {/* Amateur callsign pill */}
+                              {amateurCall && (
+                                <div
+                                  className={`px-3 py-2 md:px-4 md:py-2.5 rounded-lg flex items-center justify-between bg-muted ${
+                                    amateurCall.callsign === searchResult.primary.callsign ? "border border-primary/50" : ""
+                                  }`}
+                                  aria-label={`Amateur Radio callsign: ${amateurCall.callsign}${amateurCall.class ? `, ${formatLicenseClass(amateurCall.class)} class` : ''}${amateurCall.callsign === searchResult.primary.callsign ? ', searched callsign' : ''}`}
+                                >
+                                  <span className="font-bold text-base text-foreground" aria-hidden="true">
+                                    {amateurCall.callsign}
+                                  </span>
+                                  <span className="text-xs px-2 py-0.5 rounded bg-accent/20 text-accent" aria-hidden="true">
+                                    Amateur{amateurCall.class && ` (${formatLicenseClass(amateurCall.class)})`}
+                                  </span>
+                                </div>
+                              )}
+                              {/* GMRS callsign pill - only show if exists */}
+                              {gmrsCall && (
+                                <div
+                                  className={`px-3 py-2 md:px-4 md:py-2.5 rounded-lg flex items-center justify-between bg-muted ${
+                                    gmrsCall.callsign === searchResult.primary.callsign ? "border border-primary/50" : ""
+                                  }`}
+                                  aria-label={`GMRS callsign: ${gmrsCall.callsign}${gmrsCall.callsign === searchResult.primary.callsign ? ', searched callsign' : ''}`}
+                                >
+                                  <span className="font-bold text-base text-foreground" aria-hidden="true">
+                                    {gmrsCall.callsign}
+                                  </span>
+                                  <span className="text-xs px-2 py-0.5 rounded bg-accent/20 text-accent" aria-hidden="true">
+                                    GMRS
+                                  </span>
+                                </div>
+                              )}
+                              {/* Empty placeholder if no GMRS to maintain grid */}
+                              {!gmrsCall && amateurCall && <div aria-hidden="true" />}
+                              {/* DMR ID pill - only for amateur callsigns */}
+                              {(() => {
+                                const dmrId = amateurCall ? dmrIds[amateurCall.callsign] : null
+                                return (
+                                  <div
+                                    className="px-3 py-2 md:px-4 md:py-2.5 rounded-lg flex items-center justify-between bg-muted"
+                                    aria-label={dmrId ? `DMR ID: ${dmrId}` : "DMR ID: Not available"}
+                                  >
+                                    <span className="font-bold text-base text-foreground" aria-hidden="true">{dmrId || "—"}</span>
+                                    <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary" aria-hidden="true">DMR ID</span>
+                                  </div>
+                                )
+                              })()}
+                              {/* Grid Square pill */}
+                              <div
+                                className="px-3 py-2 md:px-4 md:py-2.5 rounded-lg flex items-center justify-between bg-muted"
+                                aria-label="Grid Square: Not available"
+                              >
+                                <span className="font-bold text-base text-foreground" aria-hidden="true">—</span>
+                                <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary" aria-hidden="true">Grid</span>
+                              </div>
+                            </div>
+                          )
+                        })()}
                       </CardContent>
                     </Card>
                   )
