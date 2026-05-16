@@ -362,32 +362,36 @@ export default function CallsignLookup() {
                   const amateurRecord = searchResult.related.find(r => isAmateurRadio(r.service)) || searchResult.primary
                   return (
                     <Card key={searchResult.primary.callsign} className="bg-card border-border text-left" role="article" aria-labelledby={`result-name-${searchResult.primary.callsign}`}>
-                      <CardHeader className="p-3 pb-2 md:p-6 md:pb-4">
-                        <CardTitle id={`result-name-${searchResult.primary.callsign}`} className="text-base md:text-2xl text-primary">{formatName(amateurRecord.name)}</CardTitle>
-                        <CardDescription className="text-xs md:text-base leading-tight">
-                          <span className="sr-only">Address: </span>
-                          {formatStreet(amateurRecord.street)}, {amateurRecord.city && amateurRecord.state 
+                      <CardHeader className="p-3 md:p-6">
+                        <CardTitle id={`result-name-${searchResult.primary.callsign}`} className="text-2xl text-primary">{formatName(amateurRecord.name)}</CardTitle>
+                        <CardDescription className="text-base">
+                          <span className="sr-only">Street address: </span>
+                          {formatStreet(amateurRecord.street)}
+                        </CardDescription>
+                        <CardDescription className="text-lg">
+                          <span className="sr-only">City and state: </span>
+                          {amateurRecord.city && amateurRecord.state 
                             ? `${amateurRecord.city}, ${amateurRecord.state} ${amateurRecord.zip || ""}`.trim()
                             : "Location not available"}
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-                        <p id={`callsigns-label-${searchResult.primary.callsign}`} className="text-[10px] md:text-sm text-muted-foreground mb-1.5 md:mb-3">Associated Callsigns</p>
-                        <ul className="flex flex-wrap gap-1 md:gap-2" role="list" aria-labelledby={`callsigns-label-${searchResult.primary.callsign}`}>
+                        <p id={`callsigns-label-${searchResult.primary.callsign}`} className="text-sm text-muted-foreground mb-2 md:mb-3">Associated Callsigns</p>
+                        <ul className="flex flex-wrap gap-1.5 md:gap-2" role="list" aria-labelledby={`callsigns-label-${searchResult.primary.callsign}`}>
                           {searchResult.related.map((record) => (
                             <li
                               key={record.callsign}
-                              className={`px-2 py-1 md:px-4 md:py-2 rounded-md md:rounded-lg flex items-center gap-1 md:gap-2 bg-muted ${
+                              className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg flex items-center gap-1.5 md:gap-2 bg-muted ${
                                 record.callsign === searchResult.primary.callsign
                                   ? "border border-primary/50"
                                   : ""
                               }`}
                               role="listitem"
                             >
-                              <span className="font-bold text-xs md:text-base text-foreground">
+                              <span className="font-bold text-foreground">
                                 {record.callsign}
                               </span>
-                              <span className="text-[9px] md:text-xs px-1 md:px-2 py-0.5 rounded bg-accent/20 text-accent" aria-label={isAmateurRadio(record.service) ? `Amateur Radio${record.class ? `, ${formatLicenseClass(record.class)} class` : ''}` : 'GMRS'}>
+                              <span className="text-xs px-2 py-0.5 rounded bg-accent/20 text-accent" aria-label={isAmateurRadio(record.service) ? `Amateur Radio${record.class ? `, ${formatLicenseClass(record.class)} class` : ''}` : 'GMRS'}>
                                 {isAmateurRadio(record.service) ? "Amateur" : "GMRS"}
                                 {isAmateurRadio(record.service) && record.class && ` (${formatLicenseClass(record.class)})`}
                               </span>
@@ -401,18 +405,18 @@ export default function CallsignLookup() {
                 
                 {notFound.length > 0 && (
                   <Card className="bg-card border-border" role="status" aria-live="polite">
-                    <CardContent className="py-3 md:py-6 text-center">
-                      <p className="text-xs md:text-base text-muted-foreground">No results found for: {notFound.join(", ")}</p>
-                      <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-2">Make sure you entered valid US callsigns</p>
+                    <CardContent className="py-4 md:py-6 text-center">
+                      <p className="text-muted-foreground">No results found for: {notFound.join(", ")}</p>
+                      <p className="text-sm text-muted-foreground mt-2">Make sure you entered valid US callsigns</p>
                     </CardContent>
                   </Card>
                 )}
 
                 {searchResults.length === 0 && notFound.length === 0 && (
                   <Card className="bg-card border-border" role="status" aria-live="polite">
-                    <CardContent className="py-4 md:py-8 text-center">
-                      <p className="text-xs md:text-base text-muted-foreground">No results found</p>
-                      <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-2">Make sure you entered valid US callsigns</p>
+                    <CardContent className="py-6 md:py-8 text-center">
+                      <p className="text-muted-foreground">No results found</p>
+                      <p className="text-sm text-muted-foreground mt-2">Make sure you entered valid US callsigns</p>
                     </CardContent>
                   </Card>
                 )}
