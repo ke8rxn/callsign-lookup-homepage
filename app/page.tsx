@@ -123,9 +123,9 @@ export default function CallsignLookup() {
     setSearchResults([])
     setNotFound([])
 
-    // Split by comma and clean up each callsign
+    // Split by comma, semicolon, or whitespace and clean up each callsign
     const callsigns = callsign
-      .split(",")
+      .split(/[,;\s]+/)
       .map(c => c.trim().toUpperCase())
       .filter(c => c.length > 0)
 
