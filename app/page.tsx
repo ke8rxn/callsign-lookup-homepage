@@ -59,6 +59,11 @@ function formatLicenseClass(classAbbr: string | null): string {
 function formatStreet(street: string): string {
   if (!street) return "Street not available"
   
+  // If street is only digits, it's a PO Box (FCC strips "PO BOX" prefix)
+  if (/^\d+$/.test(street.trim())) {
+    return `PO Box ${street.trim()}`
+  }
+  
   // If street already has spaces, return as-is (properly formatted)
   if (street.includes(" ")) return street
   
