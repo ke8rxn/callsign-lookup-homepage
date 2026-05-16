@@ -155,7 +155,10 @@ export default function CallsignLookup() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.href = url
-    link.download = `callsign-lookup-${new Date().toISOString().split("T")[0]}.csv`
+    const now = new Date()
+    const dateStr = now.toISOString().split("T")[0]
+    const timeStr = now.toISOString().split("T")[1].split(".")[0].replace(/:/g, "")
+    link.download = `callsign-lookup-${dateStr}-${timeStr}UTC.csv`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -305,7 +308,16 @@ export default function CallsignLookup() {
                     type="text"
                     placeholder="Enter callsigns"
                     value={callsign}
-                    onChange={(e) => setCallsign(e.target.value.toUpperCase())}
+                    onChange={(e) => {
+                      const newValue = e.target.value.toUpperCase()
+                      setCallsign(newValue)
+                      if (newValue.trim() === "") {
+                        setSearchResults([])
+                        setNotFound([])
+                        setHasSearched(false)
+                        setError(null)
+                      }
+                    }}
                     className="pl-10 h-12 text-lg !bg-input dark:!bg-input border-border text-foreground"
                     aria-describedby="search-hint"
                   />
