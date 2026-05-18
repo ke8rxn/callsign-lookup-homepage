@@ -227,12 +227,15 @@ export default function CallsignLookup() {
     if (searchResults.length === 0) return
 
     // CSV headers
-    const headers = ["Callsign", "Name", "Street", "City", "State", "ZIP", "Service", "License Class"]
+    const headers = ["Callsign", "Name", "Street", "City", "State", "ZIP", "Service", "License Class", "DMR ID", "Grid Square"]
     
     // Build CSV rows from all related callsigns
     const rows: string[][] = []
     for (const result of searchResults) {
       const amateurRecord = result.related.find(r => isAmateurRadio(r.service)) || result.primary
+      const dmrId = amateurRecord ? dmrIds[amateurRecord.callsign] || "" : ""
+      const gridSquare = gridSquares[result.primary.callsign] || ""
+      
       for (const record of result.related) {
         rows.push([
           record.callsign,
@@ -242,7 +245,9 @@ export default function CallsignLookup() {
           amateurRecord.state || "",
           amateurRecord.zip || "",
           isAmateurRadio(record.service) ? "Amateur" : "GMRS",
-          isAmateurRadio(record.service) && record.class ? formatLicenseClass(record.class) : ""
+          isAmateurRadio(record.service) && record.class ? formatLicenseClass(record.class) : "",
+          isAmateurRadio(record.service) ? dmrId : "",
+          gridSquare
         ])
       }
     }
@@ -273,7 +278,7 @@ export default function CallsignLookup() {
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
-  }, [searchResults])
+  }, [searchResults, dmrIds, gridSquares])
 
   const handleSearch = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
