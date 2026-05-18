@@ -638,7 +638,7 @@ export default function CallsignLookup() {
                                     aria-label={`DMR ID: ${dmrId}`}
                                   >
                                     <span className="font-bold text-base text-white" aria-hidden="true">{dmrId}</span>
-                                    <span className="text-xs px-2 py-0.5 rounded bg-primary/30 text-primary font-medium" aria-hidden="true">DMR ID</span>
+                                    <span className="text-xs px-2 py-0.5 rounded bg-primary/30 text-white font-medium" aria-hidden="true">DMR ID</span>
                                   </div>
                                 )
                               })()}
@@ -651,7 +651,7 @@ export default function CallsignLookup() {
                                     aria-label={grid ? `Grid Square: ${grid}` : "Grid Square: Not available"}
                                   >
                                     <span className="font-bold text-base text-white" aria-hidden="true">{grid || "—"}</span>
-                                    <span className="text-xs px-2 py-0.5 rounded bg-primary/30 text-primary font-medium" aria-hidden="true">Grid</span>
+                                    <span className="text-xs px-2 py-0.5 rounded bg-primary/30 text-white font-medium" aria-hidden="true">Grid</span>
                                   </div>
                                 )
                               })()}
