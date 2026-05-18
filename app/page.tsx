@@ -608,7 +608,7 @@ export default function CallsignLookup() {
                                   <span className="font-bold text-base text-foreground" aria-hidden="true">
                                     {amateurCall.callsign}
                                   </span>
-                                  <span className="text-xs px-2 py-0.5 rounded bg-accent/30 text-white font-medium" aria-hidden="true">
+                                  <span className="text-xs px-2 py-0.5 rounded bg-accent/20 text-accent" aria-hidden="true">
                                     Amateur{amateurCall.class && ` (${formatLicenseClass(amateurCall.class)})`}
                                   </span>
                                 </div>
@@ -624,7 +624,7 @@ export default function CallsignLookup() {
                                   <span className="font-bold text-base text-foreground" aria-hidden="true">
                                     {gmrsCall.callsign}
                                   </span>
-                                  <span className="text-xs px-2 py-0.5 rounded bg-accent/30 text-white font-medium" aria-hidden="true">
+                                  <span className="text-xs px-2 py-0.5 rounded bg-accent/20 text-accent" aria-hidden="true">
                                     GMRS
                                   </span>
                                 </div>
