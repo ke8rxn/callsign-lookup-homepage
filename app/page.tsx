@@ -139,7 +139,10 @@ function formatStreet(street: string): string {
   // Only split on lowercase-to-uppercase transitions
   formatted = formatted.replace(/([a-z])([A-Z])/g, "$1 $2")
   
-  // Step 6: Add back the trailing direction
+  // Step 6: Add space between "Suite" and the number (e.g., "Suite110" -> "Suite 110")
+  formatted = formatted.replace(/\b(Suite)(\d)/gi, "$1 $2")
+  
+  // Step 7: Add back the trailing direction
   if (trailingDirection) {
     formatted = formatted + " " + trailingDirection
   }
