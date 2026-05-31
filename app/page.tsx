@@ -436,19 +436,24 @@ export default function CallsignLookup() {
                 <Menu className="h-5 w-5" />
               </Button>
               {mobileMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-lg shadow-lg py-2 z-50">
+                <div 
+                  className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-lg shadow-lg py-2 z-50"
+                  role="menu"
+                  aria-label="Navigation menu"
+                >
                   <a
                     href="#"
                     className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
+                    role="menuitem"
                   >
                     Home
                   </a>
-                  <Dialog>
+                  <Dialog onOpenChange={(open) => { if (open) setMobileMenuOpen(false) }}>
                     <DialogTrigger asChild>
                       <button
                         className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                        onClick={() => setMobileMenuOpen(false)}
+                        role="menuitem"
                       >
                         Amateur Radio
                       </button>
@@ -478,11 +483,11 @@ export default function CallsignLookup() {
                       </div>
                     </DialogContent>
                   </Dialog>
-                  <Dialog>
+                  <Dialog onOpenChange={(open) => { if (open) setMobileMenuOpen(false) }}>
                     <DialogTrigger asChild>
                       <button
                         className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                        onClick={() => setMobileMenuOpen(false)}
+                        role="menuitem"
                       >
                         GMRS
                       </button>
@@ -543,11 +548,11 @@ export default function CallsignLookup() {
                       </div>
                     </DialogContent>
                   </Dialog>
-                  <Dialog>
+                  <Dialog onOpenChange={(open) => { if (open) setMobileMenuOpen(false) }}>
                     <DialogTrigger asChild>
                       <button
                         className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                        onClick={() => setMobileMenuOpen(false)}
+                        role="menuitem"
                       >
                         API
                       </button>
