@@ -527,39 +527,39 @@ export default function CallsignLookup() {
                     <p>
                       GMRS operates on 22 channels in the UHF band (462-467 MHz), with some channels shared with the unlicensed Family Radio Service (FRS).
                     </p>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm border border-border rounded-lg">
+                    <div>
+                      <table className="w-full text-xs border border-border rounded-lg">
                         <thead>
                           <tr className="bg-muted">
-                            <th className="px-3 py-2 text-left font-medium border-b border-border text-white">Ch</th>
-                            <th className="px-3 py-2 text-left font-medium border-b border-border text-white">Frequency</th>
-                            <th className="px-3 py-2 text-left font-medium border-b border-border text-white">Type/Usage</th>
-                            <th className="px-3 py-2 text-right font-medium border-b border-border text-white">Max Power</th>
+                            <th className="px-1.5 py-1.5 text-left font-medium border-b border-border text-white">Ch</th>
+                            <th className="px-1.5 py-1.5 text-left font-medium border-b border-border text-white">Freq (MHz)</th>
+                            <th className="px-1.5 py-1.5 text-left font-medium border-b border-border text-white">Type</th>
+                            <th className="px-1.5 py-1.5 text-right font-medium border-b border-border text-white">Power</th>
                           </tr>
                         </thead>
                         <tbody className="text-white">
-                          <tr><td className="px-3 py-1.5 border-b border-border/50">1</td><td className="px-3 py-1.5 border-b border-border/50">462.5625</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                          <tr><td className="px-3 py-1.5 border-b border-border/50">2</td><td className="px-3 py-1.5 border-b border-border/50">462.5875</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                          <tr><td className="px-3 py-1.5 border-b border-border/50">3</td><td className="px-3 py-1.5 border-b border-border/50">462.6125</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                          <tr><td className="px-3 py-1.5 border-b border-border/50">4</td><td className="px-3 py-1.5 border-b border-border/50">462.6375</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                          <tr><td className="px-3 py-1.5 border-b border-border/50">5</td><td className="px-3 py-1.5 border-b border-border/50">462.6625</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                          <tr><td className="px-3 py-1.5 border-b border-border/50">6</td><td className="px-3 py-1.5 border-b border-border/50">462.6875</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                          <tr><td className="px-3 py-1.5 border-b border-border/50">7</td><td className="px-3 py-1.5 border-b border-border/50">462.7125</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                          <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">8</td><td className="px-3 py-1.5 border-b border-border/50">467.5625</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                          <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">9</td><td className="px-3 py-1.5 border-b border-border/50">467.5875</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                          <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">10</td><td className="px-3 py-1.5 border-b border-border/50">467.6125</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                          <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">11</td><td className="px-3 py-1.5 border-b border-border/50">467.6375</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                          <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">12</td><td className="px-3 py-1.5 border-b border-border/50">467.6625</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                          <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">13</td><td className="px-3 py-1.5 border-b border-border/50">467.6875</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                          <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">14</td><td className="px-3 py-1.5 border-b border-border/50">467.7125</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                          <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">15</td><td className="px-3 py-1.5 border-b border-border/50">462.5500</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                          <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">16</td><td className="px-3 py-1.5 border-b border-border/50">462.5750</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                          <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">17</td><td className="px-3 py-1.5 border-b border-border/50">462.6000</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                          <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">18</td><td className="px-3 py-1.5 border-b border-border/50">462.6250</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                          <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">19</td><td className="px-3 py-1.5 border-b border-border/50">462.6500</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                          <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">20</td><td className="px-3 py-1.5 border-b border-border/50">462.6750</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                          <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">21</td><td className="px-3 py-1.5 border-b border-border/50">462.7000</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                          <tr className="bg-primary/10"><td className="px-3 py-1.5">22</td><td className="px-3 py-1.5">462.7250</td><td className="px-3 py-1.5">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right">50W</td></tr>
+                          <tr><td className="px-1.5 py-1 border-b border-border/50">1</td><td className="px-1.5 py-1 border-b border-border/50">462.5625</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                          <tr><td className="px-1.5 py-1 border-b border-border/50">2</td><td className="px-1.5 py-1 border-b border-border/50">462.5875</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                          <tr><td className="px-1.5 py-1 border-b border-border/50">3</td><td className="px-1.5 py-1 border-b border-border/50">462.6125</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                          <tr><td className="px-1.5 py-1 border-b border-border/50">4</td><td className="px-1.5 py-1 border-b border-border/50">462.6375</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                          <tr><td className="px-1.5 py-1 border-b border-border/50">5</td><td className="px-1.5 py-1 border-b border-border/50">462.6625</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                          <tr><td className="px-1.5 py-1 border-b border-border/50">6</td><td className="px-1.5 py-1 border-b border-border/50">462.6875</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                          <tr><td className="px-1.5 py-1 border-b border-border/50">7</td><td className="px-1.5 py-1 border-b border-border/50">462.7125</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">8</td><td className="px-1.5 py-1 border-b border-border/50">467.5625</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">9</td><td className="px-1.5 py-1 border-b border-border/50">467.5875</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">10</td><td className="px-1.5 py-1 border-b border-border/50">467.6125</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">11</td><td className="px-1.5 py-1 border-b border-border/50">467.6375</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">12</td><td className="px-1.5 py-1 border-b border-border/50">467.6625</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">13</td><td className="px-1.5 py-1 border-b border-border/50">467.6875</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">14</td><td className="px-1.5 py-1 border-b border-border/50">467.7125</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">15</td><td className="px-1.5 py-1 border-b border-border/50">462.5500</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">16</td><td className="px-1.5 py-1 border-b border-border/50">462.5750</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">17</td><td className="px-1.5 py-1 border-b border-border/50">462.6000</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">18</td><td className="px-1.5 py-1 border-b border-border/50">462.6250</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">19</td><td className="px-1.5 py-1 border-b border-border/50">462.6500</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">20</td><td className="px-1.5 py-1 border-b border-border/50">462.6750</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">21</td><td className="px-1.5 py-1 border-b border-border/50">462.7000</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-1.5 py-1">22</td><td className="px-1.5 py-1">462.7250</td><td className="px-1.5 py-1">Repeater</td><td className="px-1.5 py-1 text-right">50W</td></tr>
                         </tbody>
                       </table>
                     </div>
@@ -660,39 +660,39 @@ export default function CallsignLookup() {
                   <p>
                     GMRS operates on 22 channels in the UHF band (462-467 MHz), with some channels shared with the unlicensed Family Radio Service (FRS).
                   </p>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm border border-border rounded-lg">
+                  <div>
+                    <table className="w-full text-xs border border-border rounded-lg">
                       <thead>
                         <tr className="bg-muted">
-                          <th className="px-3 py-2 text-left font-medium border-b border-border text-white">Ch</th>
-                          <th className="px-3 py-2 text-left font-medium border-b border-border text-white">Frequency</th>
-                          <th className="px-3 py-2 text-left font-medium border-b border-border text-white">Type/Usage</th>
-                          <th className="px-3 py-2 text-right font-medium border-b border-border text-white">Max Power</th>
+                          <th className="px-1.5 py-1.5 text-left font-medium border-b border-border text-white">Ch</th>
+                          <th className="px-1.5 py-1.5 text-left font-medium border-b border-border text-white">Freq (MHz)</th>
+                          <th className="px-1.5 py-1.5 text-left font-medium border-b border-border text-white">Type</th>
+                          <th className="px-1.5 py-1.5 text-right font-medium border-b border-border text-white">Power</th>
                         </tr>
                       </thead>
                       <tbody className="text-white">
-                        <tr><td className="px-3 py-1.5 border-b border-border/50">1</td><td className="px-3 py-1.5 border-b border-border/50">462.5625</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                        <tr><td className="px-3 py-1.5 border-b border-border/50">2</td><td className="px-3 py-1.5 border-b border-border/50">462.5875</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                        <tr><td className="px-3 py-1.5 border-b border-border/50">3</td><td className="px-3 py-1.5 border-b border-border/50">462.6125</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                        <tr><td className="px-3 py-1.5 border-b border-border/50">4</td><td className="px-3 py-1.5 border-b border-border/50">462.6375</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                        <tr><td className="px-3 py-1.5 border-b border-border/50">5</td><td className="px-3 py-1.5 border-b border-border/50">462.6625</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                        <tr><td className="px-3 py-1.5 border-b border-border/50">6</td><td className="px-3 py-1.5 border-b border-border/50">462.6875</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                        <tr><td className="px-3 py-1.5 border-b border-border/50">7</td><td className="px-3 py-1.5 border-b border-border/50">462.7125</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                        <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">8</td><td className="px-3 py-1.5 border-b border-border/50">467.5625</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                        <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">9</td><td className="px-3 py-1.5 border-b border-border/50">467.5875</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                        <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">10</td><td className="px-3 py-1.5 border-b border-border/50">467.6125</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                        <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">11</td><td className="px-3 py-1.5 border-b border-border/50">467.6375</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                        <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">12</td><td className="px-3 py-1.5 border-b border-border/50">467.6625</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                        <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">13</td><td className="px-3 py-1.5 border-b border-border/50">467.6875</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                        <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">14</td><td className="px-3 py-1.5 border-b border-border/50">467.7125</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                        <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">15</td><td className="px-3 py-1.5 border-b border-border/50">462.5500</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                        <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">16</td><td className="px-3 py-1.5 border-b border-border/50">462.5750</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                        <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">17</td><td className="px-3 py-1.5 border-b border-border/50">462.6000</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                        <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">18</td><td className="px-3 py-1.5 border-b border-border/50">462.6250</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                        <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">19</td><td className="px-3 py-1.5 border-b border-border/50">462.6500</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                        <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">20</td><td className="px-3 py-1.5 border-b border-border/50">462.6750</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                        <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">21</td><td className="px-3 py-1.5 border-b border-border/50">462.7000</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                        <tr className="bg-primary/10"><td className="px-3 py-1.5">22</td><td className="px-3 py-1.5">462.7250</td><td className="px-3 py-1.5">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right">50W</td></tr>
+                        <tr><td className="px-1.5 py-1 border-b border-border/50">1</td><td className="px-1.5 py-1 border-b border-border/50">462.5625</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                        <tr><td className="px-1.5 py-1 border-b border-border/50">2</td><td className="px-1.5 py-1 border-b border-border/50">462.5875</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                        <tr><td className="px-1.5 py-1 border-b border-border/50">3</td><td className="px-1.5 py-1 border-b border-border/50">462.6125</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                        <tr><td className="px-1.5 py-1 border-b border-border/50">4</td><td className="px-1.5 py-1 border-b border-border/50">462.6375</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                        <tr><td className="px-1.5 py-1 border-b border-border/50">5</td><td className="px-1.5 py-1 border-b border-border/50">462.6625</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                        <tr><td className="px-1.5 py-1 border-b border-border/50">6</td><td className="px-1.5 py-1 border-b border-border/50">462.6875</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                        <tr><td className="px-1.5 py-1 border-b border-border/50">7</td><td className="px-1.5 py-1 border-b border-border/50">462.7125</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                        <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">8</td><td className="px-1.5 py-1 border-b border-border/50">467.5625</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                        <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">9</td><td className="px-1.5 py-1 border-b border-border/50">467.5875</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                        <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">10</td><td className="px-1.5 py-1 border-b border-border/50">467.6125</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                        <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">11</td><td className="px-1.5 py-1 border-b border-border/50">467.6375</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                        <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">12</td><td className="px-1.5 py-1 border-b border-border/50">467.6625</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                        <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">13</td><td className="px-1.5 py-1 border-b border-border/50">467.6875</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                        <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">14</td><td className="px-1.5 py-1 border-b border-border/50">467.7125</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                        <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">15</td><td className="px-1.5 py-1 border-b border-border/50">462.5500</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                        <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">16</td><td className="px-1.5 py-1 border-b border-border/50">462.5750</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                        <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">17</td><td className="px-1.5 py-1 border-b border-border/50">462.6000</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                        <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">18</td><td className="px-1.5 py-1 border-b border-border/50">462.6250</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                        <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">19</td><td className="px-1.5 py-1 border-b border-border/50">462.6500</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                        <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">20</td><td className="px-1.5 py-1 border-b border-border/50">462.6750</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                        <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">21</td><td className="px-1.5 py-1 border-b border-border/50">462.7000</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                        <tr className="bg-primary/10"><td className="px-1.5 py-1">22</td><td className="px-1.5 py-1">462.7250</td><td className="px-1.5 py-1">Repeater</td><td className="px-1.5 py-1 text-right">50W</td></tr>
                       </tbody>
                     </table>
                   </div>
@@ -705,14 +705,14 @@ export default function CallsignLookup() {
                       size="sm"
                       className="ml-4 shrink-0"
                       onClick={() => {
-                        const csvContent = `Channel,Frequency (MHz),Type/Usage,Max Power
-1,462.5625,Simplex (FRS/GMRS),5W
-2,462.5875,Simplex (FRS/GMRS),5W
-3,462.6125,Simplex (FRS/GMRS),5W
-4,462.6375,Simplex (FRS/GMRS),5W
-5,462.6625,Simplex (FRS/GMRS),5W
-6,462.6875,Simplex (FRS/GMRS),5W
-7,462.7125,Simplex (FRS/GMRS),5W
+                        const csvContent = `Channel,Freq (MHz),Type,Power
+1,462.5625,FRS/GMRS,5W
+2,462.5875,FRS/GMRS,5W
+3,462.6125,FRS/GMRS,5W
+4,462.6375,FRS/GMRS,5W
+5,462.6625,FRS/GMRS,5W
+6,462.6875,FRS/GMRS,5W
+7,462.7125,FRS/GMRS,5W
 8,467.5625,Simplex,0.5W
 9,467.5875,Simplex,0.5W
 10,467.6125,Simplex,0.5W
@@ -720,14 +720,14 @@ export default function CallsignLookup() {
 12,467.6625,Simplex,0.5W
 13,467.6875,Simplex,0.5W
 14,467.7125,Simplex,0.5W
-15,462.5500,Simplex / Repeater Output,50W
-16,462.5750,Simplex / Repeater Output,50W
-17,462.6000,Simplex / Repeater Output,50W
-18,462.6250,Simplex / Repeater Output,50W
-19,462.6500,Simplex / Repeater Output,50W
-20,462.6750,Simplex / Repeater Output,50W
-21,462.7000,Simplex / Repeater Output,50W
-22,462.7250,Simplex / Repeater Output,50W`
+15,462.5500,Repeater,50W
+16,462.5750,Repeater,50W
+17,462.6000,Repeater,50W
+18,462.6250,Repeater,50W
+19,462.6500,Repeater,50W
+20,462.6750,Repeater,50W
+21,462.7000,Repeater,50W
+22,462.7250,Repeater,50W`
                         const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
                         const url = URL.createObjectURL(blob)
                         const link = document.createElement("a")
