@@ -715,7 +715,7 @@ export default function CallsignLookup() {
                     </div>
                     <CardTitle className="text-sm md:text-lg">License Class</CardTitle>
                     <CardDescription className="text-xs md:text-sm hidden md:block">
-                      View the operator&apos;s license class and privileges
+                      View the operator&apos;s license class
                     </CardDescription>
                     <span className="text-[10px] md:text-xs text-primary font-medium mt-1 md:mt-2 inline-block">Amateur Only</span>
                   </CardHeader>
