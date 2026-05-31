@@ -528,13 +528,13 @@ export default function CallsignLookup() {
                       GMRS operates on 22 channels in the UHF band (462-467 MHz), with some channels shared with the unlicensed Family Radio Service (FRS).
                     </p>
                     <div>
-                      <table className="w-full text-xs border border-border rounded-lg">
+                      <table className="w-full text-xs border border-border rounded-lg" aria-label="GMRS channel frequencies">
                         <thead>
                           <tr className="bg-muted">
-                            <th className="px-1.5 py-1.5 text-left font-medium border-b border-border text-white">Ch</th>
-                            <th className="px-1.5 py-1.5 text-left font-medium border-b border-border text-white">Freq (MHz)</th>
-                            <th className="px-1.5 py-1.5 text-left font-medium border-b border-border text-white">Type</th>
-                            <th className="px-1.5 py-1.5 text-right font-medium border-b border-border text-white">Power</th>
+                            <th scope="col" className="px-1.5 py-1.5 text-left font-medium border-b border-border text-white">Ch</th>
+                            <th scope="col" className="px-1.5 py-1.5 text-left font-medium border-b border-border text-white">Freq (MHz)</th>
+                            <th scope="col" className="px-1.5 py-1.5 text-left font-medium border-b border-border text-white">Type</th>
+                            <th scope="col" className="px-1.5 py-1.5 text-right font-medium border-b border-border text-white">Power</th>
                           </tr>
                         </thead>
                         <tbody className="text-white">
@@ -661,13 +661,13 @@ export default function CallsignLookup() {
                     GMRS operates on 22 channels in the UHF band (462-467 MHz), with some channels shared with the unlicensed Family Radio Service (FRS).
                   </p>
                   <div>
-                    <table className="w-full text-sm border border-border rounded-lg">
+                    <table className="w-full text-sm border border-border rounded-lg" aria-label="GMRS channel frequencies">
                       <thead>
                         <tr className="bg-muted">
-                          <th className="px-3 py-2 text-left font-medium border-b border-border text-white">Ch</th>
-                          <th className="px-3 py-2 text-left font-medium border-b border-border text-white">Frequency (MHz)</th>
-                          <th className="px-3 py-2 text-left font-medium border-b border-border text-white">Type/Usage</th>
-                          <th className="px-3 py-2 text-right font-medium border-b border-border text-white">Max Power</th>
+                          <th scope="col" className="px-3 py-2 text-left font-medium border-b border-border text-white">Ch</th>
+                          <th scope="col" className="px-3 py-2 text-left font-medium border-b border-border text-white">Frequency (MHz)</th>
+                          <th scope="col" className="px-3 py-2 text-left font-medium border-b border-border text-white">Type/Usage</th>
+                          <th scope="col" className="px-3 py-2 text-right font-medium border-b border-border text-white">Max Power</th>
                         </tr>
                       </thead>
                       <tbody className="text-white">
@@ -1066,9 +1066,9 @@ export default function CallsignLookup() {
                 <p className="text-xl md:text-4xl font-bold text-primary" aria-label="Over 1 million US callsigns">1M+</p>
                 <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-1">US Callsigns</p>
               </div>
-              <a href="https://www.fcc.gov/wireless/universal-licensing-system" target="_blank" rel="noopener noreferrer" role="listitem" className="hover:opacity-80 transition-opacity">
-                <p className="text-xl md:text-4xl font-bold text-primary">FCC</p>
-                <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-1">Database</p>
+              <a href="https://www.fcc.gov/wireless/universal-licensing-system" target="_blank" rel="noopener noreferrer" role="listitem" className="hover:opacity-80 transition-opacity" aria-label="FCC Database (opens in new window)">
+                <p className="text-xl md:text-4xl font-bold text-primary" aria-hidden="true">FCC</p>
+                <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-1" aria-hidden="true">Database</p>
               </a>
               <div role="listitem">
                 <p className="text-xl md:text-4xl font-bold text-primary">Live</p>
