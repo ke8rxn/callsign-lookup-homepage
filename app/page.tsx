@@ -745,10 +745,10 @@ export default function CallsignLookup() {
                 <p className="text-xl md:text-4xl font-bold text-primary" aria-label="Over 1 million US callsigns">1M+</p>
                 <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-1">US Callsigns</p>
               </div>
-              <div role="listitem">
+              <a href="https://www.fcc.gov/wireless/universal-licensing-system" target="_blank" rel="noopener noreferrer" role="listitem" className="hover:opacity-80 transition-opacity">
                 <p className="text-xl md:text-4xl font-bold text-primary">FCC</p>
                 <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-1">Database</p>
-              </div>
+              </a>
               <div role="listitem">
                 <p className="text-xl md:text-4xl font-bold text-primary">Live</p>
                 <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-1">Lookup</p>
