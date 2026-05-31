@@ -163,6 +163,9 @@ export default function CallsignLookup() {
   const [dmrIds, setDmrIds] = useState<Record<string, string>>({})
   const [gridSquares, setGridSquares] = useState<Record<string, string>>({})
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileAmateurDialogOpen, setMobileAmateurDialogOpen] = useState(false)
+  const [mobileGmrsDialogOpen, setMobileGmrsDialogOpen] = useState(false)
+  const [mobileApiDialogOpen, setMobileApiDialogOpen] = useState(false)
 
   const copyToClipboard = useCallback(async (text: string) => {
     try {
@@ -449,148 +452,158 @@ export default function CallsignLookup() {
                   >
                     Home
                   </a>
-                  <Dialog onOpenChange={(open) => { if (open) setMobileMenuOpen(false) }}>
-                    <DialogTrigger asChild>
-                      <button
-                        className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                        role="menuitem"
-                      >
-                        Amateur Radio
-                      </button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-lg" aria-describedby="amateur-dialog-description-mobile">
-                      <DialogHeader>
-                        <DialogTitle>Amateur Radio</DialogTitle>
-                        <DialogDescription id="amateur-dialog-description-mobile">
-                          Learn about the amateur radio service.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4 text-sm" role="region" aria-label="Amateur radio information">
-                        <p>
-                          Amateur radio, also known as ham radio, is a popular hobby and service that brings people, electronics, and communication together. Licensed operators can communicate across town, around the world, or even into space without using the internet or cell networks.
-                        </p>
-                        <p>
-                          In the United States, the FCC issues three license classes with increasing privileges:
-                        </p>
-                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                          <li><strong className="text-foreground">Technician</strong> - Entry-level license with VHF/UHF privileges and limited HF access</li>
-                          <li><strong className="text-foreground">General</strong> - Expanded HF privileges for worldwide communication</li>
-                          <li><strong className="text-foreground">Extra</strong> - Full privileges on all amateur bands</li>
-                        </ul>
-                        <p className="text-muted-foreground">
-                          Amateur radio operators contribute to emergency communications, scientific research, and international goodwill while enjoying the technical aspects of radio communication.
-                        </p>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                  <Dialog onOpenChange={(open) => { if (open) setMobileMenuOpen(false) }}>
-                    <DialogTrigger asChild>
-                      <button
-                        className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                        role="menuitem"
-                      >
-                        GMRS
-                      </button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="gmrs-dialog-description-mobile">
-                      <DialogHeader>
-                        <DialogTitle>General Mobile Radio Service (GMRS)</DialogTitle>
-                        <DialogDescription id="gmrs-dialog-description-mobile">
-                          Learn about the GMRS radio service and channel frequencies.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4 text-sm" role="region" aria-label="GMRS information">
-                        <p>
-                          GMRS is a licensed radio service in the United States for short-distance two-way communication. Unlike amateur radio, no exam is required - simply apply for a license from the FCC. One license covers the holder and their immediate family members.
-                        </p>
-                        <p>
-                          GMRS operates on 22 channels in the UHF band (462-467 MHz), with some channels shared with the unlicensed Family Radio Service (FRS).
-                        </p>
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-sm border border-border rounded-lg">
-                            <thead>
-                              <tr className="bg-muted">
-                                <th className="px-3 py-2 text-left font-medium border-b border-border text-white">Ch</th>
-                                <th className="px-3 py-2 text-left font-medium border-b border-border text-white">Frequency</th>
-                                <th className="px-3 py-2 text-left font-medium border-b border-border text-white">Type/Usage</th>
-                                <th className="px-3 py-2 text-right font-medium border-b border-border text-white">Max Power</th>
-                              </tr>
-                            </thead>
-                            <tbody className="text-white">
-                              <tr><td className="px-3 py-1.5 border-b border-border/50">1</td><td className="px-3 py-1.5 border-b border-border/50">462.5625</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS shared)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                              <tr><td className="px-3 py-1.5 border-b border-border/50">2</td><td className="px-3 py-1.5 border-b border-border/50">462.5875</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS shared)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                              <tr><td className="px-3 py-1.5 border-b border-border/50">3</td><td className="px-3 py-1.5 border-b border-border/50">462.6125</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS shared)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                              <tr><td className="px-3 py-1.5 border-b border-border/50">4</td><td className="px-3 py-1.5 border-b border-border/50">462.6375</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS shared)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                              <tr><td className="px-3 py-1.5 border-b border-border/50">5</td><td className="px-3 py-1.5 border-b border-border/50">462.6625</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS shared)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                              <tr><td className="px-3 py-1.5 border-b border-border/50">6</td><td className="px-3 py-1.5 border-b border-border/50">462.6875</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS shared)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                              <tr><td className="px-3 py-1.5 border-b border-border/50">7</td><td className="px-3 py-1.5 border-b border-border/50">462.7125</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS shared)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
-                              <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">8</td><td className="px-3 py-1.5 border-b border-border/50">467.5625</td><td className="px-3 py-1.5 border-b border-border/50">Low-power simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                              <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">9</td><td className="px-3 py-1.5 border-b border-border/50">467.5875</td><td className="px-3 py-1.5 border-b border-border/50">Low-power simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                              <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">10</td><td className="px-3 py-1.5 border-b border-border/50">467.6125</td><td className="px-3 py-1.5 border-b border-border/50">Low-power simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                              <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">11</td><td className="px-3 py-1.5 border-b border-border/50">467.6375</td><td className="px-3 py-1.5 border-b border-border/50">Low-power simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                              <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">12</td><td className="px-3 py-1.5 border-b border-border/50">467.6625</td><td className="px-3 py-1.5 border-b border-border/50">Low-power simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                              <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">13</td><td className="px-3 py-1.5 border-b border-border/50">467.6875</td><td className="px-3 py-1.5 border-b border-border/50">Low-power simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                              <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">14</td><td className="px-3 py-1.5 border-b border-border/50">467.7125</td><td className="px-3 py-1.5 border-b border-border/50">Low-power simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
-                              <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">15</td><td className="px-3 py-1.5 border-b border-border/50">462.5500</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                              <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">16</td><td className="px-3 py-1.5 border-b border-border/50">462.5750</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                              <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">17</td><td className="px-3 py-1.5 border-b border-border/50">462.6000</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                              <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">18</td><td className="px-3 py-1.5 border-b border-border/50">462.6250</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                              <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">19</td><td className="px-3 py-1.5 border-b border-border/50">462.6500</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                              <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">20</td><td className="px-3 py-1.5 border-b border-border/50">462.6750</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                              <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">21</td><td className="px-3 py-1.5 border-b border-border/50">462.7000</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
-                              <tr className="bg-primary/10"><td className="px-3 py-1.5">22</td><td className="px-3 py-1.5">462.7250</td><td className="px-3 py-1.5">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right">50W</td></tr>
-                            </tbody>
-                          </table>
-                        </div>
-                        <p className="text-muted-foreground text-xs">
-                          Channels 15-22 are GMRS-only and allow up to 50W power output. Repeater inputs are 5 MHz below the output frequencies.
-                        </p>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                  <Dialog onOpenChange={(open) => { if (open) setMobileMenuOpen(false) }}>
-                    <DialogTrigger asChild>
-                      <button
-                        className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                        role="menuitem"
-                      >
-                        API
-                      </button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-lg" aria-describedby="api-dialog-description-mobile">
-                      <DialogHeader>
-                        <DialogTitle>API Access</DialogTitle>
-                        <DialogDescription id="api-dialog-description-mobile">
-                          Access callsign data programmatically.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4" role="region" aria-label="API documentation">
-                        <p className="text-sm text-muted-foreground">
-                          Use our free API to integrate callsign lookup into your own applications.
-                        </p>
-                        <div className="bg-muted p-4 rounded-lg">
-                          <p className="text-xs text-muted-foreground mb-2">Endpoint</p>
-                          <div className="flex items-center gap-2">
-                            <code className="text-sm flex-1 break-all" aria-label="API endpoint URL">https://api.ke8rxnwx.net/crossref/</code>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="hover:bg-muted hover:text-foreground hover:border-primary hover:shadow-[0_0_6px_rgba(59,130,246,0.5)]"
-                              onClick={() => copyToClipboard("https://api.ke8rxnwx.net/crossref/")}
-                              aria-label="Copy API endpoint to clipboard"
-                            >
-                              {copied ? <Check className="h-4 w-4 text-green-500" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
-                            </Button>
-                          </div>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Append a callsign to the endpoint (e.g., /KE8RXN) to get JSON data including name, address, and license information.
-                        </p>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    role="menuitem"
+                    onClick={() => {
+                      setMobileMenuOpen(false)
+                      setMobileAmateurDialogOpen(true)
+                    }}
+                  >
+                    Amateur Radio
+                  </button>
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    role="menuitem"
+                    onClick={() => {
+                      setMobileMenuOpen(false)
+                      setMobileGmrsDialogOpen(true)
+                    }}
+                  >
+                    GMRS
+                  </button>
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    role="menuitem"
+                    onClick={() => {
+                      setMobileMenuOpen(false)
+                      setMobileApiDialogOpen(true)
+                    }}
+                  >
+                    API
+                  </button>
                 </div>
               )}
+              {/* Mobile Amateur Radio Dialog */}
+              <Dialog open={mobileAmateurDialogOpen} onOpenChange={setMobileAmateurDialogOpen}>
+                <DialogContent className="sm:max-w-lg" aria-describedby="amateur-dialog-description-mobile">
+                  <DialogHeader>
+                    <DialogTitle>Amateur Radio</DialogTitle>
+                    <DialogDescription id="amateur-dialog-description-mobile">
+                      Learn about the amateur radio service.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 text-sm" role="region" aria-label="Amateur radio information">
+                    <p>
+                      Amateur radio, also known as ham radio, is a popular hobby and service that brings people, electronics, and communication together. Licensed operators can communicate across town, around the world, or even into space without using the internet or cell networks.
+                    </p>
+                    <p>
+                      In the United States, the FCC issues three license classes with increasing privileges:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                      <li><strong className="text-foreground">Technician</strong> - Entry-level license with VHF/UHF privileges and limited HF access</li>
+                      <li><strong className="text-foreground">General</strong> - Expanded HF privileges for worldwide communication</li>
+                      <li><strong className="text-foreground">Extra</strong> - Full privileges on all amateur bands</li>
+                    </ul>
+                    <p className="text-muted-foreground">
+                      Amateur radio operators contribute to emergency communications, scientific research, and international goodwill while enjoying the technical aspects of radio communication.
+                    </p>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              {/* Mobile GMRS Dialog */}
+              <Dialog open={mobileGmrsDialogOpen} onOpenChange={setMobileGmrsDialogOpen}>
+                <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="gmrs-dialog-description-mobile">
+                  <DialogHeader>
+                    <DialogTitle>General Mobile Radio Service (GMRS)</DialogTitle>
+                    <DialogDescription id="gmrs-dialog-description-mobile">
+                      Learn about the GMRS radio service and channel frequencies.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 text-sm" role="region" aria-label="GMRS information">
+                    <p>
+                      GMRS is a licensed radio service in the United States for short-distance two-way communication. Unlike amateur radio, no exam is required - simply apply for a license from the FCC. One license covers the holder and their immediate family members.
+                    </p>
+                    <p>
+                      GMRS operates on 22 channels in the UHF band (462-467 MHz), with some channels shared with the unlicensed Family Radio Service (FRS).
+                    </p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm border border-border rounded-lg">
+                        <thead>
+                          <tr className="bg-muted">
+                            <th className="px-3 py-2 text-left font-medium border-b border-border text-white">Ch</th>
+                            <th className="px-3 py-2 text-left font-medium border-b border-border text-white">Frequency</th>
+                            <th className="px-3 py-2 text-left font-medium border-b border-border text-white">Type/Usage</th>
+                            <th className="px-3 py-2 text-right font-medium border-b border-border text-white">Max Power</th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-white">
+                          <tr><td className="px-3 py-1.5 border-b border-border/50">1</td><td className="px-3 py-1.5 border-b border-border/50">462.5625</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS shared)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
+                          <tr><td className="px-3 py-1.5 border-b border-border/50">2</td><td className="px-3 py-1.5 border-b border-border/50">462.5875</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS shared)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
+                          <tr><td className="px-3 py-1.5 border-b border-border/50">3</td><td className="px-3 py-1.5 border-b border-border/50">462.6125</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS shared)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
+                          <tr><td className="px-3 py-1.5 border-b border-border/50">4</td><td className="px-3 py-1.5 border-b border-border/50">462.6375</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS shared)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
+                          <tr><td className="px-3 py-1.5 border-b border-border/50">5</td><td className="px-3 py-1.5 border-b border-border/50">462.6625</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS shared)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
+                          <tr><td className="px-3 py-1.5 border-b border-border/50">6</td><td className="px-3 py-1.5 border-b border-border/50">462.6875</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS shared)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
+                          <tr><td className="px-3 py-1.5 border-b border-border/50">7</td><td className="px-3 py-1.5 border-b border-border/50">462.7125</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS shared)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">8</td><td className="px-3 py-1.5 border-b border-border/50">467.5625</td><td className="px-3 py-1.5 border-b border-border/50">Low-power simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">9</td><td className="px-3 py-1.5 border-b border-border/50">467.5875</td><td className="px-3 py-1.5 border-b border-border/50">Low-power simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">10</td><td className="px-3 py-1.5 border-b border-border/50">467.6125</td><td className="px-3 py-1.5 border-b border-border/50">Low-power simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">11</td><td className="px-3 py-1.5 border-b border-border/50">467.6375</td><td className="px-3 py-1.5 border-b border-border/50">Low-power simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">12</td><td className="px-3 py-1.5 border-b border-border/50">467.6625</td><td className="px-3 py-1.5 border-b border-border/50">Low-power simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">13</td><td className="px-3 py-1.5 border-b border-border/50">467.6875</td><td className="px-3 py-1.5 border-b border-border/50">Low-power simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">14</td><td className="px-3 py-1.5 border-b border-border/50">467.7125</td><td className="px-3 py-1.5 border-b border-border/50">Low-power simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">15</td><td className="px-3 py-1.5 border-b border-border/50">462.5500</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">16</td><td className="px-3 py-1.5 border-b border-border/50">462.5750</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">17</td><td className="px-3 py-1.5 border-b border-border/50">462.6000</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">18</td><td className="px-3 py-1.5 border-b border-border/50">462.6250</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">19</td><td className="px-3 py-1.5 border-b border-border/50">462.6500</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">20</td><td className="px-3 py-1.5 border-b border-border/50">462.6750</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">21</td><td className="px-3 py-1.5 border-b border-border/50">462.7000</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-3 py-1.5">22</td><td className="px-3 py-1.5">462.7250</td><td className="px-3 py-1.5">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right">50W</td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <p className="text-muted-foreground text-xs">
+                      Channels 15-22 are GMRS-only and allow up to 50W power output. Repeater inputs are 5 MHz below the output frequencies.
+                    </p>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              {/* Mobile API Dialog */}
+              <Dialog open={mobileApiDialogOpen} onOpenChange={setMobileApiDialogOpen}>
+                <DialogContent className="sm:max-w-lg" aria-describedby="api-dialog-description-mobile">
+                  <DialogHeader>
+                    <DialogTitle>API Access</DialogTitle>
+                    <DialogDescription id="api-dialog-description-mobile">
+                      Access callsign data programmatically.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4" role="region" aria-label="API documentation">
+                    <p className="text-sm text-muted-foreground">
+                      Use our free API to integrate callsign lookup into your own applications.
+                    </p>
+                    <div className="bg-muted p-4 rounded-lg">
+                      <p className="text-xs text-muted-foreground mb-2">Endpoint</p>
+                      <div className="flex items-center gap-2">
+                        <code className="text-sm flex-1 break-all" aria-label="API endpoint URL">https://api.ke8rxnwx.net/crossref/</code>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="hover:bg-muted hover:text-foreground hover:border-primary hover:shadow-[0_0_6px_rgba(59,130,246,0.5)]"
+                          onClick={() => copyToClipboard("https://api.ke8rxnwx.net/crossref/")}
+                          aria-label="Copy API endpoint to clipboard"
+                        >
+                          {copied ? <Check className="h-4 w-4 text-green-500" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Append a callsign to the endpoint (e.g., /KE8RXN) to get JSON data including name, address, and license information.
+                    </p>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
             </div>
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
