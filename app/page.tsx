@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Search, Radio, MapPin, Moon, Sun, Loader2, Award, Download, Users, Copy, Check } from "lucide-react"
+import { Search, Radio, MapPin, Moon, Sun, Loader2, Download, Users, Copy, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -711,13 +711,13 @@ export default function CallsignLookup() {
                 <Card className="bg-card border-border hover:shadow-lg hover:shadow-primary/10 transition-shadow" role="listitem">
                   <CardHeader className="p-3 md:p-6">
                     <div className="h-8 w-8 md:h-12 md:w-12 rounded-lg bg-primary/20 flex items-center justify-center mb-1 md:mb-2" aria-hidden="true">
-                      <Award className="h-4 w-4 md:h-6 md:w-6 text-primary" />
+                      <Download className="h-4 w-4 md:h-6 md:w-6 text-primary" />
                     </div>
-                    <CardTitle className="text-sm md:text-lg">License Class</CardTitle>
+                    <CardTitle className="text-sm md:text-lg">Data Download</CardTitle>
                     <CardDescription className="text-xs md:text-sm hidden md:block">
-                      View the operator&apos;s license class
+                      Download your callsign queries instantly
                     </CardDescription>
-                    <span className="text-[10px] md:text-xs text-primary font-medium mt-1 md:mt-2 inline-block">Amateur Only</span>
+                    <span className="text-[10px] md:text-xs text-primary font-medium mt-1 md:mt-2 inline-block">Amateur + GMRS</span>
                   </CardHeader>
                 </Card>
 
