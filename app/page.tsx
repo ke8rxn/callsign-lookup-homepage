@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Search, Radio, MapPin, Moon, Sun, Loader2, Award, Download, Users, Copy, Check } from "lucide-react"
+import { Search, Radio, MapPin, Moon, Sun, Loader2, Download, Users, Copy, Check, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -162,6 +162,10 @@ export default function CallsignLookup() {
   const [copied, setCopied] = useState(false)
   const [dmrIds, setDmrIds] = useState<Record<string, string>>({})
   const [gridSquares, setGridSquares] = useState<Record<string, string>>({})
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileAmateurDialogOpen, setMobileAmateurDialogOpen] = useState(false)
+  const [mobileGmrsDialogOpen, setMobileGmrsDialogOpen] = useState(false)
+  const [mobileApiDialogOpen, setMobileApiDialogOpen] = useState(false)
 
   const copyToClipboard = useCallback(async (text: string) => {
     try {
@@ -422,13 +426,329 @@ export default function CallsignLookup() {
               <p className="text-xs text-muted-foreground hidden md:block">Callsign Lookup</p>
             </div>
           </div>
-          <nav className="flex items-center gap-6" aria-label="Main navigation">
-            <a href="#" className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="Home page">
-              Home
-            </a>
+          <div className="flex items-center gap-2">
+            {/* Mobile Menu */}
+            <div className="relative md:hidden">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label="Toggle menu"
+                aria-expanded={mobileMenuOpen}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+              {mobileMenuOpen && (
+                <div 
+                  className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-lg shadow-lg py-2 z-50"
+                  role="menu"
+                  aria-label="Navigation menu"
+                >
+                  <a
+                    href="#"
+                    className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                    role="menuitem"
+                  >
+                    Home
+                  </a>
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    role="menuitem"
+                    onClick={() => {
+                      setMobileMenuOpen(false)
+                      setMobileAmateurDialogOpen(true)
+                    }}
+                  >
+                    Amateur Radio
+                  </button>
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    role="menuitem"
+                    onClick={() => {
+                      setMobileMenuOpen(false)
+                      setMobileGmrsDialogOpen(true)
+                    }}
+                  >
+                    GMRS
+                  </button>
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    role="menuitem"
+                    onClick={() => {
+                      setMobileMenuOpen(false)
+                      setMobileApiDialogOpen(true)
+                    }}
+                  >
+                    API
+                  </button>
+                </div>
+              )}
+              {/* Mobile Amateur Radio Dialog */}
+              <Dialog open={mobileAmateurDialogOpen} onOpenChange={setMobileAmateurDialogOpen}>
+                <DialogContent className="sm:max-w-lg" aria-describedby="amateur-dialog-description-mobile">
+                  <DialogHeader>
+                    <DialogTitle>Amateur Radio</DialogTitle>
+                    <DialogDescription id="amateur-dialog-description-mobile">
+                      Learn about the amateur radio service.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 text-sm" role="region" aria-label="Amateur radio information">
+                    <p>
+                      Amateur radio, also known as ham radio, is a popular hobby and service that brings people, electronics, and communication together. Licensed operators can communicate across town, around the world, or even into space without using the internet or cell networks.
+                    </p>
+                    <p>
+                      In the United States, the FCC issues three license classes with increasing privileges:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                      <li><strong className="text-foreground">Technician</strong> - Entry-level license with VHF/UHF privileges and limited HF access</li>
+                      <li><strong className="text-foreground">General</strong> - Expanded HF privileges for worldwide communication</li>
+                      <li><strong className="text-foreground">Extra</strong> - Full privileges on all amateur bands</li>
+                    </ul>
+                    <p className="text-muted-foreground">
+                      Amateur radio operators contribute to emergency communications, scientific research, and international goodwill while enjoying the technical aspects of radio communication.
+                    </p>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              {/* Mobile GMRS Dialog */}
+              <Dialog open={mobileGmrsDialogOpen} onOpenChange={setMobileGmrsDialogOpen}>
+                <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="gmrs-dialog-description-mobile">
+                  <DialogHeader>
+                    <DialogTitle>General Mobile Radio Service (GMRS)</DialogTitle>
+                    <DialogDescription id="gmrs-dialog-description-mobile">
+                      Learn about the GMRS radio service and channel frequencies.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 text-sm" role="region" aria-label="GMRS information">
+                    <p>
+                      GMRS is a licensed radio service in the United States for short-distance two-way communication. Unlike amateur radio, no exam is required - simply apply for a license from the FCC. One license covers the holder and their immediate family members.
+                    </p>
+                    <p>
+                      GMRS operates on 22 channels in the UHF band (462-467 MHz), with some channels shared with the unlicensed Family Radio Service (FRS).
+                    </p>
+                    <div>
+                      <table className="w-full text-xs border border-border rounded-lg" aria-label="GMRS channel frequencies">
+                        <thead>
+                          <tr className="bg-muted">
+                            <th scope="col" className="px-1.5 py-1.5 text-left font-medium border-b border-border text-white">Ch</th>
+                            <th scope="col" className="px-1.5 py-1.5 text-left font-medium border-b border-border text-white">Freq (MHz)</th>
+                            <th scope="col" className="px-1.5 py-1.5 text-left font-medium border-b border-border text-white">Type</th>
+                            <th scope="col" className="px-1.5 py-1.5 text-right font-medium border-b border-border text-white">Power</th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-white">
+                          <tr><td className="px-1.5 py-1 border-b border-border/50">1</td><td className="px-1.5 py-1 border-b border-border/50">462.5625</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                          <tr><td className="px-1.5 py-1 border-b border-border/50">2</td><td className="px-1.5 py-1 border-b border-border/50">462.5875</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                          <tr><td className="px-1.5 py-1 border-b border-border/50">3</td><td className="px-1.5 py-1 border-b border-border/50">462.6125</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                          <tr><td className="px-1.5 py-1 border-b border-border/50">4</td><td className="px-1.5 py-1 border-b border-border/50">462.6375</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                          <tr><td className="px-1.5 py-1 border-b border-border/50">5</td><td className="px-1.5 py-1 border-b border-border/50">462.6625</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                          <tr><td className="px-1.5 py-1 border-b border-border/50">6</td><td className="px-1.5 py-1 border-b border-border/50">462.6875</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                          <tr><td className="px-1.5 py-1 border-b border-border/50">7</td><td className="px-1.5 py-1 border-b border-border/50">462.7125</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">8</td><td className="px-1.5 py-1 border-b border-border/50">467.5625</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">9</td><td className="px-1.5 py-1 border-b border-border/50">467.5875</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">10</td><td className="px-1.5 py-1 border-b border-border/50">467.6125</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">11</td><td className="px-1.5 py-1 border-b border-border/50">467.6375</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">12</td><td className="px-1.5 py-1 border-b border-border/50">467.6625</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">13</td><td className="px-1.5 py-1 border-b border-border/50">467.6875</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-muted/30"><td className="px-1.5 py-1 border-b border-border/50">14</td><td className="px-1.5 py-1 border-b border-border/50">467.7125</td><td className="px-1.5 py-1 border-b border-border/50">Simplex</td><td className="px-1.5 py-1 text-right border-b border-border/50">0.5W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">15</td><td className="px-1.5 py-1 border-b border-border/50">462.5500</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">16</td><td className="px-1.5 py-1 border-b border-border/50">462.5750</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">17</td><td className="px-1.5 py-1 border-b border-border/50">462.6000</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">18</td><td className="px-1.5 py-1 border-b border-border/50">462.6250</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">19</td><td className="px-1.5 py-1 border-b border-border/50">462.6500</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">20</td><td className="px-1.5 py-1 border-b border-border/50">462.6750</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-1.5 py-1 border-b border-border/50">21</td><td className="px-1.5 py-1 border-b border-border/50">462.7000</td><td className="px-1.5 py-1 border-b border-border/50">Repeater</td><td className="px-1.5 py-1 text-right border-b border-border/50">50W</td></tr>
+                          <tr className="bg-primary/10"><td className="px-1.5 py-1">22</td><td className="px-1.5 py-1">462.7250</td><td className="px-1.5 py-1">Repeater</td><td className="px-1.5 py-1 text-right">50W</td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <p className="text-muted-foreground text-xs">
+                      Channels 15-22 are GMRS-only and allow up to 50W power output. Repeater inputs are 5 MHz below the output frequencies.
+                    </p>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              {/* Mobile API Dialog */}
+              <Dialog open={mobileApiDialogOpen} onOpenChange={setMobileApiDialogOpen}>
+                <DialogContent className="sm:max-w-lg" aria-describedby="api-dialog-description-mobile">
+                  <DialogHeader>
+                    <DialogTitle>API Access</DialogTitle>
+                    <DialogDescription id="api-dialog-description-mobile">
+                      Access callsign data programmatically.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4" role="region" aria-label="API documentation">
+                    <p className="text-sm text-muted-foreground">
+                      Use our free API to integrate callsign lookup into your own applications.
+                    </p>
+                    <div className="bg-muted p-4 rounded-lg">
+                      <p className="text-xs text-muted-foreground mb-2">Endpoint</p>
+                      <div className="flex items-center gap-2">
+                        <code className="text-sm flex-1 break-all" aria-label="API endpoint URL">https://api.ke8rxnwx.net/crossref/</code>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="hover:bg-muted hover:text-foreground hover:border-primary hover:shadow-[0_0_6px_rgba(59,130,246,0.5)]"
+                          onClick={() => copyToClipboard("https://api.ke8rxnwx.net/crossref/")}
+                          aria-label="Copy API endpoint to clipboard"
+                        >
+                          {copied ? <Check className="h-4 w-4 text-green-500" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Append a callsign to the endpoint (e.g., /KE8RXN) to get JSON data including name, address, and license information.
+                    </p>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
+              <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="Home page">
+                Home
+              </a>
             <Dialog>
               <DialogTrigger asChild>
-                <button className="hidden md:block text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="View API documentation">
+                <button className="text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="Learn about Amateur Radio">
+                  Amateur Radio
+                </button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-lg" aria-describedby="amateur-dialog-description">
+                <DialogHeader>
+                  <DialogTitle>Amateur Radio</DialogTitle>
+                  <DialogDescription id="amateur-dialog-description">
+                    Learn about the amateur radio service.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 text-sm" role="region" aria-label="Amateur radio information">
+                  <p>
+                    Amateur radio, also known as ham radio, is a popular hobby and service that brings people, electronics, and communication together. Licensed operators can communicate across town, around the world, or even into space without using the internet or cell networks.
+                  </p>
+                  <p>
+                    In the United States, the FCC issues three license classes with increasing privileges:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                    <li><strong className="text-foreground">Technician</strong> - Entry-level license with VHF/UHF privileges and limited HF access</li>
+                    <li><strong className="text-foreground">General</strong> - Expanded HF privileges for worldwide communication</li>
+                    <li><strong className="text-foreground">Extra</strong> - Full privileges on all amateur bands</li>
+                  </ul>
+                  <p className="text-muted-foreground">
+                    Amateur radio operators contribute to emergency communications, scientific research, and international goodwill while enjoying the technical aspects of radio communication.
+                  </p>
+                </div>
+              </DialogContent>
+            </Dialog>
+            <Dialog>
+              <DialogTrigger asChild>
+                <button className="text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="Learn about GMRS">
+                  GMRS
+                </button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="gmrs-dialog-description">
+                <DialogHeader>
+                  <DialogTitle>General Mobile Radio Service (GMRS)</DialogTitle>
+                  <DialogDescription id="gmrs-dialog-description">
+                    Learn about the GMRS radio service and channel frequencies.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 text-sm" role="region" aria-label="GMRS information">
+                  <p>
+                    GMRS is a licensed radio service in the United States for short-distance two-way communication. Unlike amateur radio, no exam is required - simply apply for a license from the FCC. One license covers the holder and their immediate family members.
+                  </p>
+                  <p>
+                    GMRS operates on 22 channels in the UHF band (462-467 MHz), with some channels shared with the unlicensed Family Radio Service (FRS).
+                  </p>
+                  <div>
+                    <table className="w-full text-sm border border-border rounded-lg" aria-label="GMRS channel frequencies">
+                      <thead>
+                        <tr className="bg-muted">
+                          <th scope="col" className="px-3 py-2 text-left font-medium border-b border-border text-white">Ch</th>
+                          <th scope="col" className="px-3 py-2 text-left font-medium border-b border-border text-white">Frequency (MHz)</th>
+                          <th scope="col" className="px-3 py-2 text-left font-medium border-b border-border text-white">Type/Usage</th>
+                          <th scope="col" className="px-3 py-2 text-right font-medium border-b border-border text-white">Max Power</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-white">
+                        <tr><td className="px-3 py-1.5 border-b border-border/50">1</td><td className="px-3 py-1.5 border-b border-border/50">462.5625</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
+                        <tr><td className="px-3 py-1.5 border-b border-border/50">2</td><td className="px-3 py-1.5 border-b border-border/50">462.5875</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
+                        <tr><td className="px-3 py-1.5 border-b border-border/50">3</td><td className="px-3 py-1.5 border-b border-border/50">462.6125</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
+                        <tr><td className="px-3 py-1.5 border-b border-border/50">4</td><td className="px-3 py-1.5 border-b border-border/50">462.6375</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
+                        <tr><td className="px-3 py-1.5 border-b border-border/50">5</td><td className="px-3 py-1.5 border-b border-border/50">462.6625</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
+                        <tr><td className="px-3 py-1.5 border-b border-border/50">6</td><td className="px-3 py-1.5 border-b border-border/50">462.6875</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
+                        <tr><td className="px-3 py-1.5 border-b border-border/50">7</td><td className="px-3 py-1.5 border-b border-border/50">462.7125</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
+                        <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">8</td><td className="px-3 py-1.5 border-b border-border/50">467.5625</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
+                        <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">9</td><td className="px-3 py-1.5 border-b border-border/50">467.5875</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
+                        <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">10</td><td className="px-3 py-1.5 border-b border-border/50">467.6125</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
+                        <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">11</td><td className="px-3 py-1.5 border-b border-border/50">467.6375</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
+                        <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">12</td><td className="px-3 py-1.5 border-b border-border/50">467.6625</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
+                        <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">13</td><td className="px-3 py-1.5 border-b border-border/50">467.6875</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
+                        <tr className="bg-muted/30"><td className="px-3 py-1.5 border-b border-border/50">14</td><td className="px-3 py-1.5 border-b border-border/50">467.7125</td><td className="px-3 py-1.5 border-b border-border/50">Simplex</td><td className="px-3 py-1.5 text-right border-b border-border/50">0.5W</td></tr>
+                        <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">15</td><td className="px-3 py-1.5 border-b border-border/50">462.5500</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
+                        <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">16</td><td className="px-3 py-1.5 border-b border-border/50">462.5750</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
+                        <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">17</td><td className="px-3 py-1.5 border-b border-border/50">462.6000</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
+                        <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">18</td><td className="px-3 py-1.5 border-b border-border/50">462.6250</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
+                        <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">19</td><td className="px-3 py-1.5 border-b border-border/50">462.6500</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
+                        <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">20</td><td className="px-3 py-1.5 border-b border-border/50">462.6750</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
+                        <tr className="bg-primary/10"><td className="px-3 py-1.5 border-b border-border/50">21</td><td className="px-3 py-1.5 border-b border-border/50">462.7000</td><td className="px-3 py-1.5 border-b border-border/50">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right border-b border-border/50">50W</td></tr>
+                        <tr className="bg-primary/10"><td className="px-3 py-1.5">22</td><td className="px-3 py-1.5">462.7250</td><td className="px-3 py-1.5">Simplex / Repeater Output</td><td className="px-3 py-1.5 text-right">50W</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-muted-foreground text-xs">
+                      Channels 15-22 are GMRS-only and allow up to 50W power output. Repeater inputs are 5 MHz below the output frequencies.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="ml-4 shrink-0"
+                      onClick={() => {
+                        const csvContent = `Channel,Freq (MHz),Type,Power
+1,462.5625,FRS/GMRS,5W
+2,462.5875,FRS/GMRS,5W
+3,462.6125,FRS/GMRS,5W
+4,462.6375,FRS/GMRS,5W
+5,462.6625,FRS/GMRS,5W
+6,462.6875,FRS/GMRS,5W
+7,462.7125,FRS/GMRS,5W
+8,467.5625,Simplex,0.5W
+9,467.5875,Simplex,0.5W
+10,467.6125,Simplex,0.5W
+11,467.6375,Simplex,0.5W
+12,467.6625,Simplex,0.5W
+13,467.6875,Simplex,0.5W
+14,467.7125,Simplex,0.5W
+15,462.5500,Repeater,50W
+16,462.5750,Repeater,50W
+17,462.6000,Repeater,50W
+18,462.6250,Repeater,50W
+19,462.6500,Repeater,50W
+20,462.6750,Repeater,50W
+21,462.7000,Repeater,50W
+22,462.7250,Repeater,50W`
+                        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+                        const url = URL.createObjectURL(blob)
+                        const link = document.createElement("a")
+                        link.href = url
+                        link.download = "gmrs-channels.csv"
+                        document.body.appendChild(link)
+                        link.click()
+                        document.body.removeChild(link)
+                        URL.revokeObjectURL(url)
+                      }}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download CSV
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+            <Dialog>
+              <DialogTrigger asChild>
+                <button className="text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="View API documentation">
                   API
                 </button>
               </DialogTrigger>
@@ -475,6 +795,7 @@ export default function CallsignLookup() {
                 </div>
               </DialogContent>
             </Dialog>
+            </nav>
             <Button
               variant="ghost"
               size="icon"
@@ -483,7 +804,7 @@ export default function CallsignLookup() {
             >
               {isDark ? <Sun className="h-5 w-5" aria-hidden="true" /> : <Moon className="h-5 w-5" aria-hidden="true" />}
             </Button>
-          </nav>
+          </div>
         </div>
       </header>
 
@@ -711,13 +1032,13 @@ export default function CallsignLookup() {
                 <Card className="bg-card border-border hover:shadow-lg hover:shadow-primary/10 transition-shadow" role="listitem">
                   <CardHeader className="p-3 md:p-6">
                     <div className="h-8 w-8 md:h-12 md:w-12 rounded-lg bg-primary/20 flex items-center justify-center mb-1 md:mb-2" aria-hidden="true">
-                      <Award className="h-4 w-4 md:h-6 md:w-6 text-primary" />
+                      <Download className="h-4 w-4 md:h-6 md:w-6 text-primary" />
                     </div>
-                    <CardTitle className="text-sm md:text-lg">License Class</CardTitle>
+                    <CardTitle className="text-sm md:text-lg">Data Download</CardTitle>
                     <CardDescription className="text-xs md:text-sm hidden md:block">
-                      View the operator&apos;s license class and privileges
+                      Download your callsign queries instantly
                     </CardDescription>
-                    <span className="text-[10px] md:text-xs text-primary font-medium mt-1 md:mt-2 inline-block">Amateur Only</span>
+                    <span className="text-[10px] md:text-xs text-primary font-medium mt-1 md:mt-2 inline-block">Amateur + GMRS</span>
                   </CardHeader>
                 </Card>
 
@@ -745,10 +1066,10 @@ export default function CallsignLookup() {
                 <p className="text-xl md:text-4xl font-bold text-primary" aria-label="Over 1 million US callsigns">1M+</p>
                 <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-1">US Callsigns</p>
               </div>
-              <div role="listitem">
-                <p className="text-xl md:text-4xl font-bold text-primary">FCC</p>
-                <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-1">Database</p>
-              </div>
+              <a href="https://www.fcc.gov/wireless/universal-licensing-system" target="_blank" rel="noopener noreferrer" role="listitem" className="hover:opacity-80 transition-opacity" aria-label="FCC Database (opens in new window)">
+                <p className="text-xl md:text-4xl font-bold text-primary" aria-hidden="true">FCC</p>
+                <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-1" aria-hidden="true">Database</p>
+              </a>
               <div role="listitem">
                 <p className="text-xl md:text-4xl font-bold text-primary">Live</p>
                 <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-1">Lookup</p>
