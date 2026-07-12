@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { RepeaterLookup } from "@/components/repeater-lookup"
+import { RepeaterLookupPage } from "@/components/repeater-lookup-page"
 
 interface CallsignRecord {
   usid: string
@@ -167,7 +167,7 @@ export default function CallsignLookup() {
   const [mobileAmateurDialogOpen, setMobileAmateurDialogOpen] = useState(false)
   const [mobileGmrsDialogOpen, setMobileGmrsDialogOpen] = useState(false)
   const [mobileApiDialogOpen, setMobileApiDialogOpen] = useState(false)
-  const [repeaterDialogOpen, setRepeaterDialogOpen] = useState(false)
+  const [view, setView] = useState<"callsign" | "repeater">("callsign")
 
   const copyToClipboard = useCallback(async (text: string) => {
     try {
@@ -419,13 +419,55 @@ export default function CallsignLookup() {
       {/* Header */}
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-3 py-2 md:px-4 md:py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 md:gap-3">
-            <div className="h-8 w-8 md:h-10 md:w-10 rounded-lg bg-primary flex items-center justify-center" aria-hidden="true">
-              <Radio className="h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />
-            </div>
-            <div>
+          <div className="flex items-center gap-2 md:gap-4">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="h-8 w-8 md:h-10 md:w-10 rounded-lg bg-primary flex items-center justify-center" aria-hidden="true">
+                <Radio className="h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />
+              </div>
               <h1 className="text-lg md:text-xl font-bold text-foreground">KE8RXN</h1>
-              <p className="text-xs text-muted-foreground hidden md:block">Callsign Lookup</p>
+            </div>
+            {/* View toggle: Callsign Lookup / Repeater Lookup */}
+            <div
+              role="tablist"
+              aria-label="Select lookup tool"
+              className="inline-flex items-center rounded-lg border border-border bg-muted p-0.5"
+              onKeyDown={(e) => {
+                if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+                  e.preventDefault()
+                  setView((v) => (v === "callsign" ? "repeater" : "callsign"))
+                }
+              }}
+            >
+              <button
+                role="tab"
+                id="tab-callsign"
+                aria-controls="panel-callsign"
+                aria-selected={view === "callsign"}
+                tabIndex={view === "callsign" ? 0 : -1}
+                onClick={() => setView("callsign")}
+                className={`rounded-md px-2.5 py-1 text-xs md:text-sm font-medium transition-colors ${
+                  view === "callsign"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Callsign<span className="hidden sm:inline"> Lookup</span>
+              </button>
+              <button
+                role="tab"
+                id="tab-repeater"
+                aria-controls="panel-repeater"
+                aria-selected={view === "repeater"}
+                tabIndex={view === "repeater" ? 0 : -1}
+                onClick={() => setView("repeater")}
+                className={`rounded-md px-2.5 py-1 text-xs md:text-sm font-medium transition-colors ${
+                  view === "repeater"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Repeater<span className="hidden sm:inline"> Lookup</span>
+              </button>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -454,16 +496,6 @@ export default function CallsignLookup() {
                   >
                     Home
                   </a>
-                  <button
-                    className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                    role="menuitem"
-                    onClick={() => {
-                      setMobileMenuOpen(false)
-                      setRepeaterDialogOpen(true)
-                    }}
-                  >
-                    Repeater Lookup
-                  </button>
                   <button
                     className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                     role="menuitem"
@@ -616,20 +648,11 @@ export default function CallsignLookup() {
                 </DialogContent>
               </Dialog>
             </div>
-            {/* Repeater Lookup Dialog (shared by desktop and mobile) */}
-            <RepeaterLookup open={repeaterDialogOpen} onOpenChange={setRepeaterDialogOpen} />
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
               <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="Home page">
                 Home
               </a>
-            <button
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Look up nearby repeaters"
-              onClick={() => setRepeaterDialogOpen(true)}
-            >
-              Repeater Lookup
-            </button>
             <Dialog>
               <DialogTrigger asChild>
                 <button className="text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="Learn about Amateur Radio">
@@ -831,6 +854,12 @@ export default function CallsignLookup() {
 
       {/* Main Content */}
       <main id="main-content" className="flex-1 flex flex-col">
+        {view === "repeater" ? (
+          <div role="tabpanel" id="panel-repeater" aria-labelledby="tab-repeater" className="flex-1">
+            <RepeaterLookupPage />
+          </div>
+        ) : (
+        <div role="tabpanel" id="panel-callsign" aria-labelledby="tab-callsign" className="flex-1 flex flex-col">
         {/* Hero Section with Search */}
         <section className="py-6 md:py-14 bg-gradient-to-b from-card to-background" aria-labelledby="search-heading">
           <div className="container mx-auto px-3 md:px-4 text-center">
@@ -1102,6 +1131,8 @@ export default function CallsignLookup() {
             </div>
           </div>
         </section>
+        </div>
+        )}
       </main>
 
       {/* Footer */}
