@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { RepeaterLookup } from "@/components/repeater-lookup"
 
 interface CallsignRecord {
   usid: string
@@ -166,6 +167,7 @@ export default function CallsignLookup() {
   const [mobileAmateurDialogOpen, setMobileAmateurDialogOpen] = useState(false)
   const [mobileGmrsDialogOpen, setMobileGmrsDialogOpen] = useState(false)
   const [mobileApiDialogOpen, setMobileApiDialogOpen] = useState(false)
+  const [repeaterDialogOpen, setRepeaterDialogOpen] = useState(false)
 
   const copyToClipboard = useCallback(async (text: string) => {
     try {
@@ -457,6 +459,16 @@ export default function CallsignLookup() {
                     role="menuitem"
                     onClick={() => {
                       setMobileMenuOpen(false)
+                      setRepeaterDialogOpen(true)
+                    }}
+                  >
+                    Repeater Lookup
+                  </button>
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    role="menuitem"
+                    onClick={() => {
+                      setMobileMenuOpen(false)
                       setMobileAmateurDialogOpen(true)
                     }}
                   >
@@ -604,11 +616,20 @@ export default function CallsignLookup() {
                 </DialogContent>
               </Dialog>
             </div>
+            {/* Repeater Lookup Dialog (shared by desktop and mobile) */}
+            <RepeaterLookup open={repeaterDialogOpen} onOpenChange={setRepeaterDialogOpen} />
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
               <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="Home page">
                 Home
               </a>
+            <button
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Look up nearby repeaters"
+              onClick={() => setRepeaterDialogOpen(true)}
+            >
+              Repeater Lookup
+            </button>
             <Dialog>
               <DialogTrigger asChild>
                 <button className="text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="Learn about Amateur Radio">
