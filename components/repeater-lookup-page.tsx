@@ -451,6 +451,16 @@ export function RepeaterLookupPage() {
                 )}
                 Search
               </Button>
+              <Button
+                type="button"
+                className="gap-2 bg-blue-600 text-white hover:bg-blue-700"
+                onClick={() => setShowAdvanced((s) => !s)}
+                aria-expanded={showAdvanced}
+                aria-controls="advanced-search-panel"
+              >
+                <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+                Advanced
+              </Button>
             </div>
           </div>
           <p id="repeater-input-hint" className="text-xs text-muted-foreground">
@@ -458,20 +468,8 @@ export function RepeaterLookupPage() {
             unavailable.
           </p>
 
-          {/* Advanced search toggle */}
+          {/* Advanced search panel */}
           <div>
-            <Button
-              type="button"
-              size="sm"
-              className="gap-2 bg-blue-600 text-white hover:bg-blue-700"
-              onClick={() => setShowAdvanced((s) => !s)}
-              aria-expanded={showAdvanced}
-              aria-controls="advanced-search-panel"
-            >
-              <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
-              Advanced search
-            </Button>
-
             {showAdvanced && (
               <div
                 id="advanced-search-panel"
