@@ -28,7 +28,7 @@ interface Repeater {
   distance: number
 }
 
-type SortKey = "callsign" | "frequency" | "offset" | "mode" | "distance"
+type SortKey = "callsign" | "frequency" | "offset" | "tone" | "mode" | "distance"
 type SortDir = "asc" | "desc"
 
 // Convert a Maidenhead grid square (4 or 6 characters) to its center lat/lon
@@ -64,6 +64,19 @@ function formatOffset(hz: number): string {
   const mhz = hz / 1_000_000
   const sign = mhz > 0 ? "+" : ""
   return `${sign}${mhz.toFixed(3)} MHz`
+}
+
+// Returns the access tone (CTCSS/DCS) or "N/A" when there isn't one (e.g. YSF/digital)
+function formatTone(encode: string): string {
+  if (!encode || encode === "0.00") return "N/A"
+  return encode
+}
+
+// Numeric value used for sorting tones; "N/A" sorts last
+function toneSortValue(encode: string): number {
+  if (!encode || encode === "0.00") return Number.POSITIVE_INFINITY
+  const n = Number.parseFloat(encode)
+  return Number.isNaN(n) ? Number.POSITIVE_INFINITY : n
 }
 
 // Color-coded styling for each digital/analog mode
@@ -258,6 +271,9 @@ export function RepeaterLookupPage() {
         case "offset":
           cmp = a.offset - b.offset
           break
+        case "tone":
+          cmp = toneSortValue(a.encode) - toneSortValue(b.encode)
+          break
         case "mode":
           cmp = (a.mode || "").localeCompare(b.mode || "")
           break
@@ -297,7 +313,7 @@ export function RepeaterLookupPage() {
       r.city || "",
       formatFrequency(r.frequency),
       formatOffset(r.offset),
-      r.encode && r.encode !== "0.00" ? r.encode : "",
+      formatTone(r.encode),
       r.mode || "",
       r.distance.toFixed(1),
       r.operational === 0 ? "Offline" : "Operational",
@@ -546,6 +562,7 @@ export function RepeaterLookupPage() {
                       <SortHeader label="Call Sign" sortKeyName="callsign" />
                       <SortHeader label="Frequency" sortKeyName="frequency" />
                       <SortHeader label="Offset" sortKeyName="offset" />
+                      <SortHeader label="Tone" sortKeyName="tone" />
                       <SortHeader label="Mode" sortKeyName="mode" />
                       <SortHeader label="Distance" sortKeyName="distance" align="right" />
                     </tr>
@@ -567,11 +584,9 @@ export function RepeaterLookupPage() {
                         <td className="whitespace-nowrap px-3 py-2 text-foreground">
                           {formatFrequency(r.frequency)}
                           <span className="text-muted-foreground"> MHz</span>
-                          {r.encode && r.encode !== "0.00" && (
-                            <span className="block text-xs text-muted-foreground">Tone {r.encode}</span>
-                          )}
                         </td>
                         <td className="whitespace-nowrap px-3 py-2 text-muted-foreground">{formatOffset(r.offset)}</td>
+                        <td className="whitespace-nowrap px-3 py-2 text-muted-foreground">{formatTone(r.encode)}</td>
                         <td className="px-3 py-2">
                           <ModePills mode={r.mode} />
                         </td>
