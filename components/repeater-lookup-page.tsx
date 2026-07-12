@@ -237,20 +237,14 @@ export function RepeaterLookupPage() {
       setIsSearching(true)
       setError(null)
       try {
-        const response = await fetch(`/api/grid-lookup?zip=${encodeURIComponent(value)}`)
+        const response = await fetch(`/api/zip-location?zip=${encodeURIComponent(value)}`)
         const data = await response.json()
-        if (!data.grid) {
+        if (!response.ok || typeof data.lat !== "number" || typeof data.lon !== "number") {
           setIsSearching(false)
           setError("Could not find a location for that ZIP code.")
           return
         }
-        const coords = gridToLatLon(data.grid)
-        if (!coords) {
-          setIsSearching(false)
-          setError("Could not resolve coordinates for that ZIP code.")
-          return
-        }
-        runSearch(coords.lat, coords.lon, `ZIP ${value}`, radius)
+        runSearch(data.lat, data.lon, data.label || `ZIP ${value}`, radius)
       } catch {
         setIsSearching(false)
         setError("Something went wrong looking up that ZIP code.")
