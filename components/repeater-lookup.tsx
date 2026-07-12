@@ -64,6 +64,39 @@ function formatOffset(hz: number): string {
   return `${sign}${mhz.toFixed(3)} MHz`
 }
 
+// Color-coded styling for each digital/analog mode
+const MODE_STYLES: Record<string, string> = {
+  FM: "bg-blue-500/15 text-blue-400 border-blue-500/30",
+  DMR: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+  YSF: "bg-green-500/15 text-green-400 border-green-500/30",
+  C4FM: "bg-green-500/15 text-green-400 border-green-500/30",
+  "D-STAR": "bg-pink-500/15 text-pink-400 border-pink-500/30",
+  DSTAR: "bg-pink-500/15 text-pink-400 border-pink-500/30",
+  P25: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30",
+  NXDN: "bg-rose-500/15 text-rose-400 border-rose-500/30",
+}
+
+function ModePills({ mode }: { mode: string }) {
+  if (!mode) return <span className="text-muted-foreground">—</span>
+  // Modes can be compound, e.g. "YSF/FM"
+  const parts = mode.split(/[/,]/).map((p) => p.trim()).filter(Boolean)
+  return (
+    <span className="flex flex-wrap gap-1">
+      {parts.map((part) => {
+        const style = MODE_STYLES[part.toUpperCase()] ?? "bg-muted text-muted-foreground border-border"
+        return (
+          <span
+            key={part}
+            className={`inline-block rounded-full border px-2 py-0.5 text-xs font-medium ${style}`}
+          >
+            {part}
+          </span>
+        )
+      })}
+    </span>
+  )
+}
+
 export function RepeaterLookup({ open, onOpenChange }: RepeaterLookupProps) {
   const [inputValue, setInputValue] = useState("")
   const [isSearching, setIsSearching] = useState(false)
@@ -277,37 +310,60 @@ export function RepeaterLookup({ open, onOpenChange }: RepeaterLookupProps) {
                   Found {results.length} repeater{results.length === 1 ? "" : "s"} within 25 miles
                   {locationLabel ? ` of ${locationLabel}` : ""}.
                 </p>
-                <ul className="space-y-2">
-                  {results.map((r) => (
-                    <li
-                      key={r.id}
-                      className="rounded-lg border border-border bg-card p-3 text-sm"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-foreground">{r.callsign || "Unknown"}</span>
-                          {r.operational === 0 && (
-                            <span className="rounded bg-destructive/15 px-1.5 py-0.5 text-xs text-destructive">
-                              Offline
-                            </span>
-                          )}
-                        </div>
-                        <span className="whitespace-nowrap text-xs text-muted-foreground">
-                          {r.distance.toFixed(1)} mi
-                        </span>
-                      </div>
-                      <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-0.5 text-muted-foreground sm:grid-cols-3">
-                        <span>
-                          <span className="text-foreground">{formatFrequency(r.frequency)}</span> MHz
-                        </span>
-                        <span>{formatOffset(r.offset)}</span>
-                        {r.encode && r.encode !== "0.00" && <span>Tone {r.encode}</span>}
-                        {r.mode && <span>{r.mode}</span>}
-                        {r.city && <span className="col-span-2 sm:col-span-3">{r.city}</span>}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                <div className="overflow-x-auto rounded-lg border border-border">
+                  <table className="w-full text-sm" aria-label="Nearby repeaters">
+                    <thead>
+                      <tr className="bg-muted">
+                        <th scope="col" className="px-3 py-2 text-left font-medium text-foreground">
+                          Call Sign
+                        </th>
+                        <th scope="col" className="px-3 py-2 text-left font-medium text-foreground">
+                          Frequency
+                        </th>
+                        <th scope="col" className="px-3 py-2 text-left font-medium text-foreground">
+                          Offset
+                        </th>
+                        <th scope="col" className="px-3 py-2 text-left font-medium text-foreground">
+                          Mode
+                        </th>
+                        <th scope="col" className="px-3 py-2 text-right font-medium text-foreground">
+                          Distance
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {results.map((r) => (
+                        <tr key={r.id} className="border-t border-border align-top">
+                          <td className="px-3 py-2">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className="font-semibold text-foreground">{r.callsign || "Unknown"}</span>
+                              {r.operational === 0 && (
+                                <span className="rounded bg-destructive/15 px-1.5 py-0.5 text-xs text-destructive">
+                                  Offline
+                                </span>
+                              )}
+                            </div>
+                            {r.city && <span className="text-xs text-muted-foreground">{r.city}</span>}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-2 text-foreground">
+                            {formatFrequency(r.frequency)}
+                            <span className="text-muted-foreground"> MHz</span>
+                            {r.encode && r.encode !== "0.00" && (
+                              <span className="block text-xs text-muted-foreground">Tone {r.encode}</span>
+                            )}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-2 text-muted-foreground">{formatOffset(r.offset)}</td>
+                          <td className="px-3 py-2">
+                            <ModePills mode={r.mode} />
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-2 text-right text-muted-foreground">
+                            {r.distance.toFixed(1)} mi
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>
