@@ -462,9 +462,8 @@ export function RepeaterLookupPage() {
           <div>
             <Button
               type="button"
-              variant="ghost"
               size="sm"
-              className="gap-2 px-2 text-muted-foreground hover:text-foreground"
+              className="gap-2 bg-blue-600 text-white hover:bg-blue-700"
               onClick={() => setShowAdvanced((s) => !s)}
               aria-expanded={showAdvanced}
               aria-controls="advanced-search-panel"

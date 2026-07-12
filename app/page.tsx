@@ -650,9 +650,6 @@ export default function CallsignLookup() {
             </div>
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
-              <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="Home page">
-                Home
-              </a>
             <Dialog>
               <DialogTrigger asChild>
                 <button className="text-sm text-muted-foreground hover:text-foreground transition-colors" aria-label="Learn about Amateur Radio">
