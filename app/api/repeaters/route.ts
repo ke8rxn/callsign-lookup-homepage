@@ -79,6 +79,8 @@ export async function GET(request: Request) {
 
     const nearby = repeaters
       .filter((r) => typeof r.latitude === "number" && typeof r.longitude === "number")
+      // Exclude simplex repeaters (those with no transmit/receive offset)
+      .filter((r) => typeof r.offset === "number" && r.offset !== 0)
       .map((r) => ({
         ...r,
         distance: distanceMiles(lat, lon, r.latitude, r.longitude),

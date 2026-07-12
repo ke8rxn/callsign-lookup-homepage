@@ -93,9 +93,28 @@ export function RepeaterLookup({ open, onOpenChange }: RepeaterLookupProps) {
     }
   }, [])
 
+  const fetchIpLocation = useCallback(async () => {
+    setIsSearching(true)
+    setError(null)
+    try {
+      const response = await fetch("/api/ip-location")
+      const data = await response.json()
+      if (!response.ok || typeof data.lat !== "number" || typeof data.lon !== "number") {
+        setIsSearching(false)
+        setError("Couldn't determine your location by IP. Enter a ZIP code or grid square instead.")
+        return
+      }
+      runSearch(data.lat, data.lon, data.label || "your approximate location")
+    } catch {
+      setIsSearching(false)
+      setError("Couldn't determine your location by IP. Enter a ZIP code or grid square instead.")
+    }
+  }, [runSearch])
+
   const handleUseLocation = useCallback(() => {
     if (!("geolocation" in navigator)) {
-      setError("Geolocation is not supported by your browser.")
+      // No GPS available at all — fall back to IP-based location
+      fetchIpLocation()
       return
     }
     setIsSearching(true)
@@ -106,12 +125,12 @@ export function RepeaterLookup({ open, onOpenChange }: RepeaterLookupProps) {
         runSearch(latitude, longitude, "your current location")
       },
       () => {
-        setIsSearching(false)
-        setError("Location access denied. Enter a ZIP code or grid square instead.")
+        // GPS denied or failed — fall back to IP-based location
+        fetchIpLocation()
       },
       { enableHighAccuracy: true, timeout: 10000 },
     )
-  }, [runSearch])
+  }, [runSearch, fetchIpLocation])
 
   const handleManualSearch = useCallback(async () => {
     const value = inputValue.trim()
@@ -177,8 +196,8 @@ export function RepeaterLookup({ open, onOpenChange }: RepeaterLookupProps) {
         <DialogHeader>
           <DialogTitle>Repeater Lookup</DialogTitle>
           <DialogDescription id="repeater-dialog-description">
-            Find amateur radio repeaters within 25 miles of a location. Use your current location, or enter a US ZIP
-            code or Maidenhead grid square.
+            Find amateur radio repeaters within 25 miles of a location. Use your current location (falls back to an
+            approximate location by IP address if GPS is unavailable), or enter a US ZIP code or Maidenhead grid square.
           </DialogDescription>
         </DialogHeader>
 
