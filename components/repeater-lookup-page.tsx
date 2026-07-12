@@ -26,6 +26,7 @@ interface Repeater {
   offset: number
   operational: number
   distance: number
+  description: string
 }
 
 type SortKey = "callsign" | "frequency" | "offset" | "tone" | "mode" | "distance"
@@ -66,10 +67,31 @@ function formatOffset(hz: number): string {
   return `${sign}${mhz.toFixed(3)} MHz`
 }
 
-// Returns the access tone (CTCSS/DCS) or "N/A" when there isn't one (e.g. YSF/digital)
-function formatTone(encode: string): string {
-  if (!encode || encode === "0.00") return "N/A"
-  return encode
+// Parse DMR timeslots (TS1/TS2) referenced in a repeater's free-text description
+function parseTimeslots(description: string): string[] {
+  if (!description) return []
+  const found = new Set<string>()
+  const re = /(?:time\s*slot|timeslot|slot|ts)\s*#?\s*([12])/gi
+  let match: RegExpExecArray | null
+  while ((match = re.exec(description)) !== null) {
+    found.add(`TS${match[1]}`)
+  }
+  return Array.from(found).sort()
+}
+
+// Returns the access tone (CTCSS/DCS), or for DMR the color code plus timeslot(s)
+// (e.g. "CC1/TS1"), or "N/A" when there isn't one (e.g. YSF/digital)
+function formatTone(r: Repeater): string {
+  const isDMR = /DMR/i.test(r.mode || "")
+  if (isDMR) {
+    const parts: string[] = []
+    const cc = (r.encode || "").trim()
+    if (cc && cc !== "0.00") parts.push(cc)
+    parts.push(...parseTimeslots(r.description))
+    return parts.length ? parts.join("/") : "N/A"
+  }
+  if (!r.encode || r.encode === "0.00") return "N/A"
+  return r.encode
 }
 
 // Numeric value used for sorting tones; "N/A" sorts last
@@ -313,7 +335,7 @@ export function RepeaterLookupPage() {
       r.city || "",
       formatFrequency(r.frequency),
       formatOffset(r.offset),
-      formatTone(r.encode),
+      formatTone(r),
       r.mode || "",
       r.distance.toFixed(1),
       r.operational === 0 ? "Offline" : "Operational",
@@ -586,7 +608,7 @@ export function RepeaterLookupPage() {
                           <span className="text-muted-foreground"> MHz</span>
                         </td>
                         <td className="whitespace-nowrap px-3 py-2 text-muted-foreground">{formatOffset(r.offset)}</td>
-                        <td className="whitespace-nowrap px-3 py-2 text-muted-foreground">{formatTone(r.encode)}</td>
+                        <td className="whitespace-nowrap px-3 py-2 text-muted-foreground">{formatTone(r)}</td>
                         <td className="px-3 py-2">
                           <ModePills mode={r.mode} />
                         </td>
