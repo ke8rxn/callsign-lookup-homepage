@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Search, Radio, MapPin, Moon, Sun, Loader2, Download, Users, Copy, Check, Menu } from "lucide-react"
+import { Search, Radio, MapPin, Moon, Sun, Loader2, Download, Users, Menu, SlidersHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { RepeaterLookupPage } from "@/components/repeater-lookup-page"
 import { AdvancedSearchPage } from "@/components/advanced-search-page"
+import { ApiDocs } from "@/components/api-docs"
 import {
   type CallsignRecord,
   formatName,
@@ -31,7 +32,6 @@ export default function CallsignLookup() {
   const [notFound, setNotFound] = useState<string[]>([])
   const [hasSearched, setHasSearched] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
   const [dmrIds, setDmrIds] = useState<Record<string, string>>({})
   const [gridSquares, setGridSquares] = useState<Record<string, string>>({})
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -39,24 +39,6 @@ export default function CallsignLookup() {
   const [mobileGmrsDialogOpen, setMobileGmrsDialogOpen] = useState(false)
   const [mobileApiDialogOpen, setMobileApiDialogOpen] = useState(false)
   const [view, setView] = useState<"callsign" | "repeater" | "advanced">("callsign")
-
-  const copyToClipboard = useCallback(async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text)
-    } catch {
-      // Fallback for when clipboard API fails (e.g., inside dialogs)
-      const textarea = document.createElement("textarea")
-      textarea.value = text
-      textarea.style.position = "fixed"
-      textarea.style.opacity = "0"
-      document.body.appendChild(textarea)
-      textarea.select()
-      document.execCommand("copy")
-      document.body.removeChild(textarea)
-    }
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }, [])
 
   // Fetch DMR ID for a callsign via server-side proxy (avoids CORS issues)
   const fetchDmrId = useCallback(async (amateurCallsign: string): Promise<string | null> => {
@@ -320,7 +302,7 @@ export default function CallsignLookup() {
                 aria-selected={view === "callsign"}
                 tabIndex={view === "callsign" ? 0 : -1}
                 onClick={() => setView("callsign")}
-                className={`rounded-md px-2.5 py-1 text-xs md:text-sm font-medium transition-colors ${
+                className={`rounded-md px-2.5 py-1 text-sm font-medium transition-colors ${
                   view === "callsign"
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -335,7 +317,7 @@ export default function CallsignLookup() {
                 aria-selected={view === "advanced"}
                 tabIndex={view === "advanced" ? 0 : -1}
                 onClick={() => setView("advanced")}
-                className={`rounded-md px-2.5 py-1 text-xs md:text-sm font-medium transition-colors ${
+                className={`rounded-md px-2.5 py-1 text-sm font-medium transition-colors ${
                   view === "advanced"
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -350,7 +332,7 @@ export default function CallsignLookup() {
                 aria-selected={view === "repeater"}
                 tabIndex={view === "repeater" ? 0 : -1}
                 onClick={() => setView("repeater")}
-                className={`rounded-md px-2.5 py-1 text-xs md:text-sm font-medium transition-colors ${
+                className={`rounded-md px-2.5 py-1 text-sm font-medium transition-colors ${
                   view === "repeater"
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -462,16 +444,16 @@ export default function CallsignLookup() {
                       GMRS operates on 22 channels in the UHF band (462-467 MHz), with some channels shared with the unlicensed Family Radio Service (FRS).
                     </p>
                     <div>
-                      <table className="w-full text-xs border border-border rounded-lg" aria-label="GMRS channel frequencies">
+                      <table className="w-full text-sm border border-border rounded-lg" aria-label="GMRS channel frequencies">
                         <thead>
                           <tr className="bg-muted">
-                            <th scope="col" className="px-1.5 py-1.5 text-left font-medium border-b border-border text-white">Ch</th>
-                            <th scope="col" className="px-1.5 py-1.5 text-left font-medium border-b border-border text-white">Freq (MHz)</th>
-                            <th scope="col" className="px-1.5 py-1.5 text-left font-medium border-b border-border text-white">Type</th>
-                            <th scope="col" className="px-1.5 py-1.5 text-right font-medium border-b border-border text-white">Power</th>
+                            <th scope="col" className="px-1.5 py-1.5 text-left font-medium border-b border-border text-foreground">Ch</th>
+                            <th scope="col" className="px-1.5 py-1.5 text-left font-medium border-b border-border text-foreground">Freq (MHz)</th>
+                            <th scope="col" className="px-1.5 py-1.5 text-left font-medium border-b border-border text-foreground">Type</th>
+                            <th scope="col" className="px-1.5 py-1.5 text-right font-medium border-b border-border text-foreground">Power</th>
                           </tr>
                         </thead>
-                        <tbody className="text-white">
+                        <tbody className="text-foreground">
                           <tr><td className="px-1.5 py-1 border-b border-border/50">1</td><td className="px-1.5 py-1 border-b border-border/50">462.5625</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
                           <tr><td className="px-1.5 py-1 border-b border-border/50">2</td><td className="px-1.5 py-1 border-b border-border/50">462.5875</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
                           <tr><td className="px-1.5 py-1 border-b border-border/50">3</td><td className="px-1.5 py-1 border-b border-border/50">462.6125</td><td className="px-1.5 py-1 border-b border-border/50">FRS/GMRS</td><td className="px-1.5 py-1 text-right border-b border-border/50">5W</td></tr>
@@ -497,7 +479,7 @@ export default function CallsignLookup() {
                         </tbody>
                       </table>
                     </div>
-                    <p className="text-muted-foreground text-xs">
+                    <p className="text-muted-foreground text-sm">
                       Channels 15-22 are GMRS-only and allow up to 50W power output. Repeater inputs are 5 MHz below the output frequencies.
                     </p>
                   </div>
@@ -505,36 +487,14 @@ export default function CallsignLookup() {
               </Dialog>
               {/* Mobile API Dialog */}
               <Dialog open={mobileApiDialogOpen} onOpenChange={setMobileApiDialogOpen}>
-                <DialogContent className="sm:max-w-lg" aria-describedby="api-dialog-description-mobile">
+                <DialogContent className="sm:max-w-xl max-h-[85vh] overflow-y-auto" aria-describedby="api-dialog-description-mobile">
                   <DialogHeader>
-                    <DialogTitle>API Access</DialogTitle>
+                    <DialogTitle>API Documentation</DialogTitle>
                     <DialogDescription id="api-dialog-description-mobile">
-                      Access callsign data programmatically.
+                      The KE8RXN APIs and data sources behind this site.
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="space-y-4" role="region" aria-label="API documentation">
-                    <p className="text-sm text-muted-foreground">
-                      Use our free API to integrate callsign lookup into your own applications.
-                    </p>
-                    <div className="bg-muted p-4 rounded-lg">
-                      <p className="text-xs text-muted-foreground mb-2">Endpoint</p>
-                      <div className="flex items-center gap-2">
-                        <code className="text-sm flex-1 break-all" aria-label="API endpoint URL">https://api.ke8rxnwx.net/crossref/</code>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="hover:bg-muted hover:text-foreground hover:border-primary hover:shadow-[0_0_6px_rgba(59,130,246,0.5)]"
-                          onClick={() => copyToClipboard("https://api.ke8rxnwx.net/crossref/")}
-                          aria-label="Copy API endpoint to clipboard"
-                        >
-                          {copied ? <Check className="h-4 w-4 text-green-500" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
-                        </Button>
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Append a callsign to the endpoint (e.g., /KE8RXN) to get JSON data including name, address, and license information.
-                    </p>
-                  </div>
+                  <ApiDocs />
                 </DialogContent>
               </Dialog>
             </div>
@@ -595,13 +555,13 @@ export default function CallsignLookup() {
                     <table className="w-full text-sm border border-border rounded-lg" aria-label="GMRS channel frequencies">
                       <thead>
                         <tr className="bg-muted">
-                          <th scope="col" className="px-3 py-2 text-left font-medium border-b border-border text-white">Ch</th>
-                          <th scope="col" className="px-3 py-2 text-left font-medium border-b border-border text-white">Frequency (MHz)</th>
-                          <th scope="col" className="px-3 py-2 text-left font-medium border-b border-border text-white">Type/Usage</th>
-                          <th scope="col" className="px-3 py-2 text-right font-medium border-b border-border text-white">Max Power</th>
+                          <th scope="col" className="px-3 py-2 text-left font-medium border-b border-border text-foreground">Ch</th>
+                          <th scope="col" className="px-3 py-2 text-left font-medium border-b border-border text-foreground">Frequency (MHz)</th>
+                          <th scope="col" className="px-3 py-2 text-left font-medium border-b border-border text-foreground">Type/Usage</th>
+                          <th scope="col" className="px-3 py-2 text-right font-medium border-b border-border text-foreground">Max Power</th>
                         </tr>
                       </thead>
-                      <tbody className="text-white">
+                      <tbody className="text-foreground">
                         <tr><td className="px-3 py-1.5 border-b border-border/50">1</td><td className="px-3 py-1.5 border-b border-border/50">462.5625</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
                         <tr><td className="px-3 py-1.5 border-b border-border/50">2</td><td className="px-3 py-1.5 border-b border-border/50">462.5875</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
                         <tr><td className="px-3 py-1.5 border-b border-border/50">3</td><td className="px-3 py-1.5 border-b border-border/50">462.6125</td><td className="px-3 py-1.5 border-b border-border/50">Simplex (FRS/GMRS)</td><td className="px-3 py-1.5 text-right border-b border-border/50">5W</td></tr>
@@ -628,7 +588,7 @@ export default function CallsignLookup() {
                     </table>
                   </div>
                   <div className="flex items-center justify-between">
-                    <p className="text-muted-foreground text-xs">
+                    <p className="text-muted-foreground text-sm">
                       Channels 15-22 are GMRS-only and allow up to 50W power output. Repeater inputs are 5 MHz below the output frequencies.
                     </p>
                     <Button
@@ -683,47 +643,14 @@ export default function CallsignLookup() {
                   API
                 </button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-lg" aria-describedby="api-dialog-description">
+              <DialogContent className="sm:max-w-xl max-h-[85vh] overflow-y-auto" aria-describedby="api-dialog-description">
                 <DialogHeader>
                   <DialogTitle>API Documentation</DialogTitle>
                   <DialogDescription id="api-dialog-description">
-                    Use the KE8RXN Callsign API to look up amateur radio and GMRS license information.
+                    The KE8RXN APIs and data sources behind this site.
                   </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4" role="region" aria-label="API details">
-                  <div>
-                    <h4 id="endpoint-label" className="text-sm font-medium mb-2">Endpoint</h4>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 bg-muted px-3 py-2 rounded-md text-sm font-mono break-all" aria-labelledby="endpoint-label">
-                        https://api.ke8rxnwx.net/crossref/
-                      </code>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="hover:bg-muted hover:text-foreground hover:border-primary hover:shadow-[0_0_6px_rgba(59,130,246,0.5)]"
-                        onClick={() => copyToClipboard("https://api.ke8rxnwx.net/crossref/")}
-                        aria-label="Copy API endpoint to clipboard"
-                      >
-                        {copied ? <Check className="h-4 w-4 text-green-500" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
-                      </Button>
-                      <span className="sr-only" role="status" aria-live="polite">
-                        {copied ? "API endpoint copied to clipboard" : ""}
-                      </span>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 id="example-label" className="text-sm font-medium mb-2">Example Request</h4>
-                    <code className="block bg-muted px-3 py-2 rounded-md text-sm font-mono break-all" aria-labelledby="example-label">
-                      GET https://api.ke8rxnwx.net/crossref/KE8RXN
-                    </code>
-                  </div>
-                  <div>
-                    <h4 id="response-label" className="text-sm font-medium mb-2">Response</h4>
-                    <p className="text-sm text-muted-foreground" aria-labelledby="response-label">
-                      Returns JSON with callsign details including name, address, license class, and associated callsigns (amateur and GMRS) for the same FRN.
-                    </p>
-                  </div>
-                </div>
+                <ApiDocs />
               </DialogContent>
             </Dialog>
             </nav>
@@ -765,7 +692,7 @@ export default function CallsignLookup() {
             </p>
 
             {error && (
-              <div role="alert" className="max-w-xl mx-auto mb-4 md:mb-6 p-3 md:p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-xs md:text-sm">
+              <div role="alert" className="max-w-xl mx-auto mb-4 md:mb-6 p-3 md:p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
                 {error}
               </div>
             )}
@@ -817,6 +744,22 @@ export default function CallsignLookup() {
                 </div>
               </div>
             </form>
+
+            <div className="max-w-xl mx-auto mt-4 md:mt-5 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 text-sm md:text-base text-muted-foreground">
+              <span>Need to search by FRN, name, ZIP code, or county?</span>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 gap-2 border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground"
+                onClick={() => {
+                  setView("advanced")
+                  window.scrollTo({ top: 0 })
+                }}
+              >
+                <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+                Try Advanced Search
+              </Button>
+            </div>
 
             {/* Search Results */}
             {hasSearched && !isSearching && (
@@ -902,8 +845,8 @@ export default function CallsignLookup() {
                                     className="px-3 py-2 md:px-4 md:py-2.5 rounded-lg flex items-center justify-between bg-muted"
                                     aria-label={`DMR ID: ${dmrId}`}
                                   >
-                                    <span className="font-bold text-base text-white" aria-hidden="true">{dmrId}</span>
-                                    <span className="text-xs px-2 py-0.5 rounded bg-primary/30 text-white font-medium" aria-hidden="true">DMR ID</span>
+                                    <span className="font-bold text-base text-foreground" aria-hidden="true">{dmrId}</span>
+                                    <span className="text-xs px-2 py-0.5 rounded bg-primary/30 text-foreground font-medium" aria-hidden="true">DMR ID</span>
                                   </div>
                                 )
                               })()}
@@ -915,8 +858,8 @@ export default function CallsignLookup() {
                                     className="px-3 py-2 md:px-4 md:py-2.5 rounded-lg flex items-center justify-between bg-muted"
                                     aria-label={grid ? `Grid Square: ${grid}` : "Grid Square: Not available"}
                                   >
-                                    <span className="font-bold text-base text-white" aria-hidden="true">{grid || "—"}</span>
-                                    <span className="text-xs px-2 py-0.5 rounded bg-primary/30 text-white font-medium" aria-hidden="true">Grid</span>
+                                    <span className="font-bold text-base text-foreground" aria-hidden="true">{grid || "—"}</span>
+                                    <span className="text-xs px-2 py-0.5 rounded bg-primary/30 text-foreground font-medium" aria-hidden="true">Grid</span>
                                   </div>
                                 )
                               })()}
@@ -963,10 +906,10 @@ export default function CallsignLookup() {
                       <Users className="h-4 w-4 md:h-6 md:w-6 text-accent" />
                     </div>
                     <CardTitle className="text-sm md:text-lg">Associated Licenses</CardTitle>
-                    <CardDescription className="text-xs md:text-sm hidden md:block">
+                    <CardDescription className="text-sm hidden md:block">
                       View the operator&apos;s amateur radio and GMRS licenses
                     </CardDescription>
-                    <span className="text-[10px] md:text-xs text-accent font-medium mt-1 md:mt-2 inline-block">Amateur + GMRS</span>
+                    <span className="text-sm text-accent font-medium mt-1 md:mt-2 inline-block">Amateur + GMRS</span>
                   </CardHeader>
                 </Card>
 
@@ -976,10 +919,10 @@ export default function CallsignLookup() {
                       <Download className="h-4 w-4 md:h-6 md:w-6 text-primary" />
                     </div>
                     <CardTitle className="text-sm md:text-lg">Data Download</CardTitle>
-                    <CardDescription className="text-xs md:text-sm hidden md:block">
+                    <CardDescription className="text-sm hidden md:block">
                       Download your callsign queries instantly
                     </CardDescription>
-                    <span className="text-[10px] md:text-xs text-primary font-medium mt-1 md:mt-2 inline-block">Amateur + GMRS</span>
+                    <span className="text-sm text-primary font-medium mt-1 md:mt-2 inline-block">Amateur + GMRS</span>
                   </CardHeader>
                 </Card>
 
@@ -989,10 +932,10 @@ export default function CallsignLookup() {
                       <MapPin className="h-4 w-4 md:h-6 md:w-6 text-accent" />
                     </div>
                     <CardTitle className="text-sm md:text-lg">Location</CardTitle>
-                    <CardDescription className="text-xs md:text-sm hidden md:block">
+                    <CardDescription className="text-sm hidden md:block">
                       Find the operator&apos;s address, name, and state
                     </CardDescription>
-                    <span className="text-[10px] md:text-xs text-accent font-medium mt-1 md:mt-2 inline-block">Amateur + GMRS</span>
+                    <span className="text-sm text-accent font-medium mt-1 md:mt-2 inline-block">Amateur + GMRS</span>
                   </CardHeader>
                 </Card>
               </div>
@@ -1005,19 +948,19 @@ export default function CallsignLookup() {
             <div className="grid grid-cols-4 gap-2 md:gap-8 text-center" role="list">
               <div role="listitem">
                 <p className="text-xl md:text-4xl font-bold text-primary" aria-label="Over 1 million US callsigns">1M+</p>
-                <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-1">US Callsigns</p>
+                <p className="text-sm text-muted-foreground mt-0.5 md:mt-1">US Callsigns</p>
               </div>
               <a href="https://www.fcc.gov/wireless/universal-licensing-system" target="_blank" rel="noopener noreferrer" role="listitem" className="hover:opacity-80 transition-opacity" aria-label="FCC Database (opens in new window)">
                 <p className="text-xl md:text-4xl font-bold text-primary" aria-hidden="true">FCC</p>
-                <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-1" aria-hidden="true">Database</p>
+                <p className="text-sm text-muted-foreground mt-0.5 md:mt-1" aria-hidden="true">Database</p>
               </a>
               <div role="listitem">
                 <p className="text-xl md:text-4xl font-bold text-primary">Live</p>
-                <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-1">Lookup</p>
+                <p className="text-sm text-muted-foreground mt-0.5 md:mt-1">Lookup</p>
               </div>
               <div role="listitem">
                 <p className="text-xl md:text-4xl font-bold text-primary">Free</p>
-                <p className="text-[10px] md:text-sm text-muted-foreground mt-0.5 md:mt-1">To Use</p>
+                <p className="text-sm text-muted-foreground mt-0.5 md:mt-1">To Use</p>
               </div>
             </div>
           </div>
@@ -1034,7 +977,7 @@ export default function CallsignLookup() {
               <Radio className="h-4 w-4 md:h-5 md:w-5 text-primary" aria-hidden="true" />
               <span className="font-semibold text-sm md:text-base text-foreground">KE8RXN</span>
             </div>
-            <p className="text-xs md:text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} KE8RXN Callsign Lookup. <span aria-label="Best regards from">73 de</span> KE8RXN.
             </p>
           </div>

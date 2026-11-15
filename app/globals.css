@@ -15,12 +15,12 @@
   --secondary: oklch(0.92 0.02 240);
   --secondary-foreground: oklch(0.2 0.02 240);
   --muted: oklch(0.94 0.01 240);
-  --muted-foreground: oklch(0.45 0.02 240);
-  --accent: oklch(0.55 0.2 155);
+  --muted-foreground: oklch(0.42 0.02 240);
+  --accent: oklch(0.48 0.17 155);
   --accent-foreground: oklch(0.98 0 0);
-  --destructive: oklch(0.55 0.25 25);
+  --destructive: oklch(0.52 0.23 25);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.88 0.02 240);
+  --border: oklch(0.8 0.02 240);
   --input: oklch(0.92 0.01 240);
   --ring: oklch(0.55 0.25 265);
   --chart-1: oklch(0.55 0.25 265);
@@ -51,12 +51,12 @@
   --secondary: oklch(0.2 0.03 240);
   --secondary-foreground: oklch(0.9 0.02 265);
   --muted: oklch(0.2 0.02 240);
-  --muted-foreground: oklch(0.6 0.03 265);
+  --muted-foreground: oklch(0.75 0.03 265);
   --accent: oklch(0.8 0.25 155);
   --accent-foreground: oklch(0.1 0.02 155);
-  --destructive: oklch(0.6 0.25 25);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.25 0.04 240);
+  --destructive: oklch(0.7 0.2 25);
+  --destructive-foreground: oklch(0.1 0.02 25);
+  --border: oklch(0.34 0.04 240);
   --input: oklch(0.18 0.03 240);
   --ring: oklch(0.7 0.25 265);
   --chart-1: oklch(0.7 0.25 265);
@@ -121,5 +121,21 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  /* Strong, consistent keyboard focus indicator for low-vision users */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
