@@ -508,6 +508,9 @@ export function AdvancedSearchPage() {
         <p className="text-muted-foreground text-sm md:text-xl max-w-2xl mx-auto text-pretty">
           Look up FCC amateur and GMRS licenses by callsign, FRN, name, or location (ZIP code or state and county), one at a time or in bulk.
         </p>
+        <p className="mt-3 text-xs md:text-sm text-muted-foreground max-w-2xl mx-auto text-pretty">
+          Only active FCC amateur radio and GMRS licenses are searched. Expired, cancelled, and terminated licenses are not included.
+        </p>
       </div>
 
       <div className="max-w-2xl mx-auto flex flex-col gap-4">

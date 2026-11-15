@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Search, Radio, MapPin, Moon, Sun, Loader2, Download, Users, Copy, Check, Menu } from "lucide-react"
+import { Search, Radio, MapPin, Moon, Sun, Loader2, Download, Users, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { RepeaterLookupPage } from "@/components/repeater-lookup-page"
 import { AdvancedSearchPage } from "@/components/advanced-search-page"
+import { ApiDocs } from "@/components/api-docs"
 import {
   type CallsignRecord,
   formatName,
@@ -31,7 +32,6 @@ export default function CallsignLookup() {
   const [notFound, setNotFound] = useState<string[]>([])
   const [hasSearched, setHasSearched] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
   const [dmrIds, setDmrIds] = useState<Record<string, string>>({})
   const [gridSquares, setGridSquares] = useState<Record<string, string>>({})
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -39,24 +39,6 @@ export default function CallsignLookup() {
   const [mobileGmrsDialogOpen, setMobileGmrsDialogOpen] = useState(false)
   const [mobileApiDialogOpen, setMobileApiDialogOpen] = useState(false)
   const [view, setView] = useState<"callsign" | "repeater" | "advanced">("callsign")
-
-  const copyToClipboard = useCallback(async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text)
-    } catch {
-      // Fallback for when clipboard API fails (e.g., inside dialogs)
-      const textarea = document.createElement("textarea")
-      textarea.value = text
-      textarea.style.position = "fixed"
-      textarea.style.opacity = "0"
-      document.body.appendChild(textarea)
-      textarea.select()
-      document.execCommand("copy")
-      document.body.removeChild(textarea)
-    }
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }, [])
 
   // Fetch DMR ID for a callsign via server-side proxy (avoids CORS issues)
   const fetchDmrId = useCallback(async (amateurCallsign: string): Promise<string | null> => {
@@ -505,36 +487,14 @@ export default function CallsignLookup() {
               </Dialog>
               {/* Mobile API Dialog */}
               <Dialog open={mobileApiDialogOpen} onOpenChange={setMobileApiDialogOpen}>
-                <DialogContent className="sm:max-w-lg" aria-describedby="api-dialog-description-mobile">
+                <DialogContent className="sm:max-w-xl max-h-[85vh] overflow-y-auto" aria-describedby="api-dialog-description-mobile">
                   <DialogHeader>
-                    <DialogTitle>API Access</DialogTitle>
+                    <DialogTitle>API Documentation</DialogTitle>
                     <DialogDescription id="api-dialog-description-mobile">
-                      Access callsign data programmatically.
+                      The KE8RXN APIs and data sources behind this site.
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="space-y-4" role="region" aria-label="API documentation">
-                    <p className="text-sm text-muted-foreground">
-                      Use our free API to integrate callsign lookup into your own applications.
-                    </p>
-                    <div className="bg-muted p-4 rounded-lg">
-                      <p className="text-xs text-muted-foreground mb-2">Endpoint</p>
-                      <div className="flex items-center gap-2">
-                        <code className="text-sm flex-1 break-all" aria-label="API endpoint URL">https://api.ke8rxnwx.net/crossref/</code>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="hover:bg-muted hover:text-foreground hover:border-primary hover:shadow-[0_0_6px_rgba(59,130,246,0.5)]"
-                          onClick={() => copyToClipboard("https://api.ke8rxnwx.net/crossref/")}
-                          aria-label="Copy API endpoint to clipboard"
-                        >
-                          {copied ? <Check className="h-4 w-4 text-green-500" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
-                        </Button>
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Append a callsign to the endpoint (e.g., /KE8RXN) to get JSON data including name, address, and license information.
-                    </p>
-                  </div>
+                  <ApiDocs />
                 </DialogContent>
               </Dialog>
             </div>
@@ -683,47 +643,14 @@ export default function CallsignLookup() {
                   API
                 </button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-lg" aria-describedby="api-dialog-description">
+              <DialogContent className="sm:max-w-xl max-h-[85vh] overflow-y-auto" aria-describedby="api-dialog-description">
                 <DialogHeader>
                   <DialogTitle>API Documentation</DialogTitle>
                   <DialogDescription id="api-dialog-description">
-                    Use the KE8RXN Callsign API to look up amateur radio and GMRS license information.
+                    The KE8RXN APIs and data sources behind this site.
                   </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4" role="region" aria-label="API details">
-                  <div>
-                    <h4 id="endpoint-label" className="text-sm font-medium mb-2">Endpoint</h4>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 bg-muted px-3 py-2 rounded-md text-sm font-mono break-all" aria-labelledby="endpoint-label">
-                        https://api.ke8rxnwx.net/crossref/
-                      </code>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="hover:bg-muted hover:text-foreground hover:border-primary hover:shadow-[0_0_6px_rgba(59,130,246,0.5)]"
-                        onClick={() => copyToClipboard("https://api.ke8rxnwx.net/crossref/")}
-                        aria-label="Copy API endpoint to clipboard"
-                      >
-                        {copied ? <Check className="h-4 w-4 text-green-500" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
-                      </Button>
-                      <span className="sr-only" role="status" aria-live="polite">
-                        {copied ? "API endpoint copied to clipboard" : ""}
-                      </span>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 id="example-label" className="text-sm font-medium mb-2">Example Request</h4>
-                    <code className="block bg-muted px-3 py-2 rounded-md text-sm font-mono break-all" aria-labelledby="example-label">
-                      GET https://api.ke8rxnwx.net/crossref/KE8RXN
-                    </code>
-                  </div>
-                  <div>
-                    <h4 id="response-label" className="text-sm font-medium mb-2">Response</h4>
-                    <p className="text-sm text-muted-foreground" aria-labelledby="response-label">
-                      Returns JSON with callsign details including name, address, license class, and associated callsigns (amateur and GMRS) for the same FRN.
-                    </p>
-                  </div>
-                </div>
+                <ApiDocs />
               </DialogContent>
             </Dialog>
             </nav>
