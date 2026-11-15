@@ -563,11 +563,11 @@ export function AdvancedSearchPage() {
               aria-labelledby="zip-mode-label"
               className="grid w-full grid-cols-2"
             >
-              <ToggleGroupItem value="manual" className="data-[state=on]:bg-secondary data-[state=on]:text-secondary-foreground">
-                Enter ZIP codes
-              </ToggleGroupItem>
               <ToggleGroupItem value="county" className="data-[state=on]:bg-secondary data-[state=on]:text-secondary-foreground">
                 State &amp; county
+              </ToggleGroupItem>
+              <ToggleGroupItem value="manual" className="data-[state=on]:bg-secondary data-[state=on]:text-secondary-foreground">
+                Enter ZIP codes
               </ToggleGroupItem>
             </ToggleGroup>
           </div>
