@@ -995,7 +995,6 @@ export function AdvancedSearchPage() {
                   <nav className="flex items-center justify-between gap-2" aria-label="Results pages">
                     <Button
                       type="button"
-                      variant="outline"
                       size="sm"
                       className="gap-1"
                       onClick={() => setPage(currentPage - 1)}
@@ -1009,7 +1008,6 @@ export function AdvancedSearchPage() {
                     </span>
                     <Button
                       type="button"
-                      variant="outline"
                       size="sm"
                       className="gap-1"
                       onClick={() => setPage(currentPage + 1)}
