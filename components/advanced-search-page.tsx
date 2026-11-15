@@ -54,7 +54,7 @@ import { type CountyMatcher, isInSelectedCounties } from "@/lib/county-match"
 type SearchType = "callsign" | "frn" | "name" | "zipcode"
 type ZipMode = "manual" | "county"
 type SortKey = "amateur" | "gmrs" | "name" | "class" | "city" | "state" | "zip" | "frn"
-type ServiceFilter = "all" | "amateur" | "gmrs"
+type ServiceFilter = "all" | "both" | "amateur" | "gmrs" | "dmr"
 
 interface LicenseeRow {
   key: string
@@ -372,8 +372,11 @@ export function AdvancedSearchPage() {
 
   const visibleCounties = useMemo(() => {
     const q = countyFilter.trim().toLowerCase()
-    return q ? counties.filter((c) => c.name.toLowerCase().includes(q)) : counties
-  }, [counties, countyFilter])
+    if (!q) return counties
+    const selected = counties.filter((c) => selectedCounties.has(c.fips))
+    const matches = counties.filter((c) => !selectedCounties.has(c.fips) && c.name.toLowerCase().includes(q))
+    return [...selected, ...matches]
+  }, [counties, countyFilter, selectedCounties])
 
   const selectedCountyNames = useMemo(
     () => counties.filter((c) => selectedCounties.has(c.fips)).map((c) => c.name),
@@ -431,12 +434,32 @@ export function AdvancedSearchPage() {
   const rows = useMemo(() => groupLicensees(results, outsideIds), [results, outsideIds])
   const outsideRowCount = useMemo(() => rows.filter((r) => r.outside).length, [rows])
 
+  const allAmateurCallsigns = useMemo(
+    () =>
+      Array.from(
+        new Set(rows.map((row) => row.amateur[0]?.callsign?.toUpperCase()).filter(Boolean) as string[]),
+      ).sort(),
+    [rows],
+  )
+  const { data: allDmrIds } = useSWR(
+    allAmateurCallsigns.length ? ["dmr-all", allAmateurCallsigns.join(",")] : null,
+    ([, list]: [string, string]) => fetchAllDmrIds(list.split(",")),
+    { revalidateOnFocus: false },
+  )
+
   const filteredResults = useMemo(() => {
     const q = filterText.trim().toLowerCase()
     const filtered = rows.filter((row) => {
       if (!showOutside && row.outside) return false
-      if (serviceFilter === "amateur" && row.amateur.length === 0) return false
-      if (serviceFilter === "gmrs" && row.gmrs.length === 0) return false
+      const hasAmateur = row.amateur.length > 0
+      const hasGmrs = row.gmrs.length > 0
+      if (serviceFilter === "both" && !(hasAmateur && hasGmrs)) return false
+      if (serviceFilter === "amateur" && !(hasAmateur && !hasGmrs)) return false
+      if (serviceFilter === "gmrs" && !(hasGmrs && !hasAmateur)) return false
+      if (serviceFilter === "dmr") {
+        const call = row.amateur[0]?.callsign?.toUpperCase()
+        if (!call || !allDmrIds?.[call]) return false
+      }
       if (!q) return true
       const p = row.primary
       return [...row.records.map((r) => r.callsign), p.name, formatName(p.name), p.city, p.state, p.zip, p.frn]
@@ -449,7 +472,7 @@ export function AdvancedSearchPage() {
       const cmp = av.localeCompare(bv, undefined, { numeric: true })
       return sortDir === "asc" ? cmp : -cmp
     })
-  }, [rows, filterText, serviceFilter, sortKey, sortDir, showOutside])
+  }, [rows, filterText, serviceFilter, sortKey, sortDir, showOutside, allDmrIds])
 
   const licenseBreakdown = useMemo(() => {
     let amateur = 0
@@ -473,18 +496,6 @@ export function AdvancedSearchPage() {
     pageAmateurCallsigns.length ? `/api/dmr-lookup/batch?callsigns=${pageAmateurCallsigns.join(",")}` : null,
     fetchJson,
     { revalidateOnFocus: false, keepPreviousData: false },
-  )
-  const allAmateurCallsigns = useMemo(
-    () =>
-      Array.from(
-        new Set(rows.map((row) => row.amateur[0]?.callsign?.toUpperCase()).filter(Boolean) as string[]),
-      ).sort(),
-    [rows],
-  )
-  const { data: allDmrIds } = useSWR(
-    allAmateurCallsigns.length ? ["dmr-all", allAmateurCallsigns.join(",")] : null,
-    ([, list]: [string, string]) => fetchAllDmrIds(list.split(",")),
-    { revalidateOnFocus: false },
   )
   const dmrIds = useMemo(() => ({ ...(allDmrIds ?? {}), ...(dmrData?.dmrIds ?? {}) }), [allDmrIds, dmrData])
   const dmrUserCount = useMemo(() => {
@@ -999,13 +1010,17 @@ export function AdvancedSearchPage() {
                           setPage(1)
                         }}
                       >
-                        <SelectTrigger className="flex-1 sm:w-36" aria-label="Filter by service">
+                        <SelectTrigger className="flex-1 sm:w-44" aria-label="Filter by service">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">All services</SelectItem>
-                          <SelectItem value="amateur">Amateur</SelectItem>
-                          <SelectItem value="gmrs">GMRS</SelectItem>
+                          <SelectItem value="all">All</SelectItem>
+                          <SelectItem value="both">Amateur + GMRS</SelectItem>
+                          <SelectItem value="amateur">Amateur Only</SelectItem>
+                          <SelectItem value="gmrs">GMRS Only</SelectItem>
+                          <SelectItem value="dmr" disabled={!allDmrIds}>
+                            DMR Only
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                       <Button
