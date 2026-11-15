@@ -31,6 +31,24 @@ import {
 import { US_STATES } from "@/lib/us-states"
 
 const fetchJson = (url: string) => fetch(url).then((res) => res.json())
+
+const DMR_BATCH_SIZE = 50
+const DMR_PARALLEL_BATCHES = 3
+
+async function fetchAllDmrIds(callsigns: string[]): Promise<Record<string, string>> {
+  const batches: string[][] = []
+  for (let i = 0; i < callsigns.length; i += DMR_BATCH_SIZE) batches.push(callsigns.slice(i, i + DMR_BATCH_SIZE))
+  const merged: Record<string, string> = {}
+  for (let i = 0; i < batches.length; i += DMR_PARALLEL_BATCHES) {
+    const responses = await Promise.all(
+      batches.slice(i, i + DMR_PARALLEL_BATCHES).map((batch) =>
+        fetchJson(`/api/dmr-lookup/batch?callsigns=${batch.join(",")}`).catch(() => null),
+      ),
+    )
+    for (const res of responses) Object.assign(merged, res?.dmrIds ?? {})
+  }
+  return merged
+}
 import { type CountyMatcher, isInSelectedCounties } from "@/lib/county-match"
 
 type SearchType = "callsign" | "frn" | "name" | "zipcode"
@@ -456,7 +474,26 @@ export function AdvancedSearchPage() {
     fetchJson,
     { revalidateOnFocus: false, keepPreviousData: false },
   )
-  const dmrIds = dmrData?.dmrIds ?? {}
+  const allAmateurCallsigns = useMemo(
+    () =>
+      Array.from(
+        new Set(rows.map((row) => row.amateur[0]?.callsign?.toUpperCase()).filter(Boolean) as string[]),
+      ).sort(),
+    [rows],
+  )
+  const { data: allDmrIds } = useSWR(
+    allAmateurCallsigns.length ? ["dmr-all", allAmateurCallsigns.join(",")] : null,
+    ([, list]: [string, string]) => fetchAllDmrIds(list.split(",")),
+    { revalidateOnFocus: false },
+  )
+  const dmrIds = useMemo(() => ({ ...(allDmrIds ?? {}), ...(dmrData?.dmrIds ?? {}) }), [allDmrIds, dmrData])
+  const dmrUserCount = useMemo(() => {
+    if (!allDmrIds) return null
+    return filteredResults.filter((row) => {
+      const call = row.amateur[0]?.callsign?.toUpperCase()
+      return call ? Boolean(allDmrIds[call]) : false
+    }).length
+  }, [allDmrIds, filteredResults])
 
   const toggleSort = useCallback(
     (key: SortKey) => {
@@ -471,8 +508,9 @@ export function AdvancedSearchPage() {
     [sortKey],
   )
 
-  const exportToCSV = useCallback(() => {
+  const exportToCSV = useCallback(async () => {
     if (filteredResults.length === 0) return
+    const exportDmrIds = allDmrIds ?? (allAmateurCallsigns.length ? await fetchAllDmrIds(allAmateurCallsigns) : {})
     const headers = [
       "Amateur Callsign",
       "GMRS Callsign",
@@ -482,6 +520,7 @@ export function AdvancedSearchPage() {
       "City",
       "State",
       "ZIP",
+      "DMR ID",
       "FRN",
     ]
     const escapeCSV = (value: string) =>
@@ -497,6 +536,7 @@ export function AdvancedSearchPage() {
         p.city || "",
         p.state || "",
         p.zip || "",
+        exportDmrIds[row.amateur[0]?.callsign?.toUpperCase() ?? ""] || "",
         p.frn || "",
       ]
     })
@@ -510,7 +550,7 @@ export function AdvancedSearchPage() {
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
-  }, [filteredResults])
+  }, [filteredResults, allDmrIds, allAmateurCallsigns])
 
   const SortHeader = ({ label, sortKeyName }: { label: string; sortKeyName: SortKey }) => {
     const active = sortKey === sortKeyName
@@ -913,9 +953,18 @@ export function AdvancedSearchPage() {
                     <span className="font-semibold tabular-nums">{licenseBreakdown.amateur.toLocaleString()}</span>{" "}
                     amateur license{licenseBreakdown.amateur === 1 ? "" : "s"},{" "}
                     <span className="font-semibold tabular-nums">{licenseBreakdown.gmrs.toLocaleString()}</span>{" "}
-                    GMRS license{licenseBreakdown.gmrs === 1 ? "" : "s"}, and{" "}
-                    <span className="font-semibold tabular-nums">{licenseBreakdown.both.toLocaleString()}</span>{" "}
-                    licensee{licenseBreakdown.both === 1 ? "" : "s"} with both.
+                      GMRS license{licenseBreakdown.gmrs === 1 ? "" : "s"},{" "}
+                      <span className="font-semibold tabular-nums">{licenseBreakdown.both.toLocaleString()}</span>{" "}
+                      licensee{licenseBreakdown.both === 1 ? "" : "s"} with both, and{" "}
+                      {dmrUserCount === null ? (
+                        <span className="inline-flex items-center gap-1 align-middle text-muted-foreground">
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                          <span className="sr-only">Counting</span>
+                        </span>
+                      ) : (
+                        <span className="font-semibold tabular-nums">{dmrUserCount.toLocaleString()}</span>
+                      )}{" "}
+                      DMR user{dmrUserCount === 1 ? "" : "s"}.
                   </span>
                 </p>
                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
