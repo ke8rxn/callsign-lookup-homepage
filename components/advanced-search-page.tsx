@@ -100,6 +100,13 @@ const SEARCH_TYPES: Record<SearchType, SearchTypeConfig> = {
 }
 
 const COUNTY_ZIP_LIMIT = 300
+const MAX_LISTED_COUNTIES = 5
+
+function joinWithAnd(items: string[]) {
+  if (items.length <= 1) return items.join("")
+  if (items.length === 2) return `${items[0]} and ${items[1]}`
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`
+}
 const CONCURRENCY = 6
 const PAGE_SIZE = 50
 
@@ -187,7 +194,12 @@ export function AdvancedSearchPage() {
   const [generating, setGenerating] = useState(false)
   const [pendingZips, setPendingZips] = useState<string[] | null>(null)
   const [pendingMatch, setPendingMatch] = useState<CountyMatcher | null>(null)
-  const [countyMatch, setCountyMatch] = useState<{ matcher: CountyMatcher; label: string } | null>(null)
+  const [countyMatch, setCountyMatch] = useState<{
+    matcher: CountyMatcher
+    label: string
+    place: string
+    zipCount: number
+  } | null>(null)
   const [showOutside, setShowOutside] = useState(false)
   const [pickerCollapsed, setPickerCollapsed] = useState(false)
 
@@ -370,8 +382,17 @@ export function AdvancedSearchPage() {
     const stateName = US_STATES.find((s) => s.abbr === stateAbbr)?.name ?? stateAbbr
     const countyLabel =
       selectedCountyNames.length <= 3 ? selectedCountyNames.join(", ") : `${selectedCountyNames.length} counties`
+    const sortedCountyNames = [...selectedCountyNames].sort((a, b) => a.localeCompare(b))
+    const countyList =
+      sortedCountyNames.length > MAX_LISTED_COUNTIES
+        ? `${sortedCountyNames.length} counties`
+        : joinWithAnd(sortedCountyNames)
     setPendingZips(null)
-    setCountyMatch(pendingMatch ? { matcher: pendingMatch, label: countyLabel } : null)
+    setCountyMatch(
+      pendingMatch
+        ? { matcher: pendingMatch, label: countyLabel, place: `${countyList}, ${stateName}`, zipCount: zips.length }
+        : null,
+    )
     setShowOutside(false)
     setPickerCollapsed(true)
     runQueries("zipcode", zips, `${zips.length} ZIP codes in ${countyLabel}, ${stateName}`)
@@ -853,23 +874,26 @@ export function AdvancedSearchPage() {
               <p className="py-8 text-center text-muted-foreground">No licenses found for {lastSearchLabel}.</p>
             ) : (
               <>
-                <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-                  <div className="flex flex-col gap-1">
-                    <p className="flex flex-wrap items-baseline gap-x-2 text-foreground">
-                      <span className="sr-only">Search results: </span>
-                      <span className="text-lg font-medium">Showing</span>
-                      <span className="text-3xl font-bold tabular-nums text-primary">
-                        {filteredResults.length.toLocaleString()}
-                      </span>
-                      <span className="text-lg font-medium">
-                        of {rows.length.toLocaleString()} licensee{rows.length === 1 ? "" : "s"}
-                      </span>
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {results.length.toLocaleString()} license{results.length === 1 ? "" : "s"} from{" "}
-                      {lastSearchLabel}.
-                    </p>
-                  </div>
+                <p className="flex flex-wrap items-baseline gap-x-2 text-pretty text-foreground">
+                  <span className="sr-only">Search results: </span>
+                  <span className="text-lg font-medium">Showing</span>
+                  <span className="text-3xl font-bold tabular-nums text-primary">
+                    {filteredResults.length.toLocaleString()}
+                  </span>
+                  <span className="text-lg font-medium">
+                    {countyMatch
+                      ? `licensee${filteredResults.length === 1 ? "" : "s"} from ${countyMatch.place}`
+                      : `of ${rows.length.toLocaleString()} licensee${rows.length === 1 ? "" : "s"}`}
+                  </span>
+                </p>
+                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <p className="min-w-0 flex-1 text-sm text-muted-foreground">
+                    {results.length.toLocaleString()} license{results.length === 1 ? "" : "s"} from{" "}
+                    {countyMatch
+                      ? `${countyMatch.zipCount} ZIP code${countyMatch.zipCount === 1 ? "" : "s"}`
+                      : lastSearchLabel}
+                    .
+                  </p>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <div>
                       <label htmlFor="results-filter" className="sr-only">
