@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Search, Radio, MapPin, Moon, Sun, Loader2, Download, Users, Menu } from "lucide-react"
+import { Search, Radio, MapPin, Moon, Sun, Loader2, Download, Users, Menu, SlidersHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -744,6 +744,22 @@ export default function CallsignLookup() {
                 </div>
               </div>
             </form>
+
+            <div className="max-w-xl mx-auto mt-4 md:mt-5 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 text-sm md:text-base text-muted-foreground">
+              <span>Need to search by FRN, name, ZIP code, or county?</span>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 gap-2 border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground"
+                onClick={() => {
+                  setView("advanced")
+                  window.scrollTo({ top: 0 })
+                }}
+              >
+                <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+                Try Advanced Search
+              </Button>
+            </div>
 
             {/* Search Results */}
             {hasSearched && !isSearching && (
