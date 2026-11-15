@@ -305,7 +305,7 @@ export default function CallsignLookup() {
               onKeyDown={(e) => {
                 if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
                   e.preventDefault()
-                  const order = ["callsign", "repeater", "advanced"] as const
+                  const order = ["callsign", "advanced", "repeater"] as const
                   const step = e.key === "ArrowRight" ? 1 : -1
                   const next = order[(order.indexOf(view) + step + order.length) % order.length]
                   setView(next)
@@ -330,21 +330,6 @@ export default function CallsignLookup() {
               </button>
               <button
                 role="tab"
-                id="tab-repeater"
-                aria-controls="panel-repeater"
-                aria-selected={view === "repeater"}
-                tabIndex={view === "repeater" ? 0 : -1}
-                onClick={() => setView("repeater")}
-                className={`rounded-md px-2.5 py-1 text-xs md:text-sm font-medium transition-colors ${
-                  view === "repeater"
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Repeater<span className="hidden sm:inline"> Lookup</span>
-              </button>
-              <button
-                role="tab"
                 id="tab-advanced"
                 aria-controls="panel-advanced"
                 aria-selected={view === "advanced"}
@@ -357,6 +342,21 @@ export default function CallsignLookup() {
                 }`}
               >
                 Advanced<span className="hidden sm:inline"> Search</span>
+              </button>
+              <button
+                role="tab"
+                id="tab-repeater"
+                aria-controls="panel-repeater"
+                aria-selected={view === "repeater"}
+                tabIndex={view === "repeater" ? 0 : -1}
+                onClick={() => setView("repeater")}
+                className={`rounded-md px-2.5 py-1 text-xs md:text-sm font-medium transition-colors ${
+                  view === "repeater"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Repeater<span className="hidden sm:inline"> Lookup</span>
               </button>
             </div>
           </div>
