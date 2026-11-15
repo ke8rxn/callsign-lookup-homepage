@@ -628,10 +628,9 @@ export function AdvancedSearchPage() {
             </p>
             <Button
               type="button"
-              variant="outline"
-              size="sm"
-              className="shrink-0"
-              aria-expanded={false}
+                  size="sm"
+                  className="shrink-0"
+                  aria-expanded={false}
               aria-controls="county-picker"
               onClick={() => setPickerCollapsed(false)}
             >
