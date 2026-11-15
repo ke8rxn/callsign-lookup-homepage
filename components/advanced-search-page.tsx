@@ -430,6 +430,18 @@ export function AdvancedSearchPage() {
     })
   }, [rows, filterText, serviceFilter, sortKey, sortDir, showOutside])
 
+  const licenseBreakdown = useMemo(() => {
+    let amateur = 0
+    let gmrs = 0
+    let both = 0
+    for (const row of filteredResults) {
+      amateur += row.amateur.length
+      gmrs += row.gmrs.length
+      if (row.amateur.length > 0 && row.gmrs.length > 0) both++
+    }
+    return { amateur, gmrs, both }
+  }, [filteredResults])
+
   const pageCount = Math.max(1, Math.ceil(filteredResults.length / PAGE_SIZE))
   const currentPage = Math.min(page, pageCount)
   const pageResults = filteredResults.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
@@ -884,6 +896,14 @@ export function AdvancedSearchPage() {
                     {countyMatch
                       ? `licensee${filteredResults.length === 1 ? "" : "s"} from ${countyMatch.place}`
                       : `of ${rows.length.toLocaleString()} licensee${rows.length === 1 ? "" : "s"}`}
+                  </span>
+                  <span className="basis-full text-base text-foreground">
+                    <span className="font-semibold tabular-nums">{licenseBreakdown.amateur.toLocaleString()}</span>{" "}
+                    amateur license{licenseBreakdown.amateur === 1 ? "" : "s"},{" "}
+                    <span className="font-semibold tabular-nums">{licenseBreakdown.gmrs.toLocaleString()}</span>{" "}
+                    GMRS license{licenseBreakdown.gmrs === 1 ? "" : "s"}, and{" "}
+                    <span className="font-semibold tabular-nums">{licenseBreakdown.both.toLocaleString()}</span>{" "}
+                    licensee{licenseBreakdown.both === 1 ? "" : "s"} with both.
                   </span>
                 </p>
                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
