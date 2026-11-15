@@ -9,11 +9,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
+  Filter,
   Loader2,
   MapPinned,
   Search,
   X,
 } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -102,8 +104,8 @@ const SEARCH_TYPES: Record<SearchType, SearchTypeConfig> = {
   zipcode: {
     label: "Location",
     placeholder: "49544, 49335",
-    hint: "Separate multiple 5-digit ZIP codes with commas, spaces, or new lines. Up to 50 at a time.",
-    maxQueries: 50,
+    hint: "Separate multiple 5-digit ZIP codes with commas, spaces, or new lines. Up to 250 at a time.",
+    maxQueries: 250,
     split: (input) => input.split(/[,;\s]+/),
     validate: (v) => /^\d{5}$/.test(v),
     invalidMessage: "ZIP codes must be 5 digits.",
@@ -220,7 +222,7 @@ export function AdvancedSearchPage() {
   const [countiesLoading, setCountiesLoading] = useState(false)
   const [countyFilter, setCountyFilter] = useState("")
   const [selectedCounties, setSelectedCounties] = useState<Set<string>>(new Set())
-  const [generating, setGenerating] = useState(false)
+  const [generating, setGenerating] = useState<"search" | "zips" | null>(null)
   const [pendingZips, setPendingZips] = useState<string[] | null>(null)
   const [pendingMatch, setPendingMatch] = useState<CountyMatcher | null>(null)
   const [countyMatch, setCountyMatch] = useState<{
@@ -263,6 +265,7 @@ export function AdvancedSearchPage() {
     setNotFound([])
     setFailed([])
     setTruncated([])
+    setServiceFilter("all")
     setPage(1)
     setLastSearchLabel(label)
     setProgress({ done: 0, total: values.length })
@@ -396,26 +399,48 @@ export function AdvancedSearchPage() {
     [counties, selectedCounties],
   )
 
+  const fetchCountyZips = useCallback(async (): Promise<{ zips: string[]; match: CountyMatcher | null }> => {
+    const response = await fetch(`/api/counties?counties=${Array.from(selectedCounties).join(",")}`)
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.error)
+    return { zips: data.zips, match: data.match }
+  }, [selectedCounties])
+
   const generateZips = useCallback(async () => {
     if (selectedCounties.size === 0) return
-    setGenerating(true)
+    setGenerating("zips")
     setInputError(null)
     try {
-      const response = await fetch(`/api/counties?counties=${Array.from(selectedCounties).join(",")}`)
-      const data = await response.json()
-      if (!response.ok) throw new Error(data.error)
-      setPendingZips(data.zips)
-      setPendingMatch(data.match)
+      const { zips, match } = await fetchCountyZips()
+      setPendingZips(zips)
+      setPendingMatch(match)
     } catch {
       setInputError("Couldn't generate ZIP codes for those counties. Please try again.")
     } finally {
-      setGenerating(false)
+      setGenerating(null)
     }
-  }, [selectedCounties])
+  }, [fetchCountyZips, selectedCounties])
 
-  const confirmZipQuery = useCallback(() => {
-    if (!pendingZips || pendingZips.length === 0) return
-    const zips = pendingZips.slice(0, COUNTY_ZIP_LIMIT)
+  const searchCountyLicenses = useCallback(async () => {
+    if (selectedCounties.size === 0) return
+    setGenerating("search")
+    setInputError(null)
+    setPendingZips(null)
+    let allZips: string[]
+    let match: CountyMatcher | null
+    try {
+      ;({ zips: allZips, match } = await fetchCountyZips())
+    } catch {
+      setInputError("Couldn't look up ZIP codes for those counties. Please try again.")
+      setGenerating(null)
+      return
+    }
+    setGenerating(null)
+    if (allZips.length === 0) {
+      setInputError("No ZIP codes were found for the selected counties.")
+      return
+    }
+    const zips = allZips.slice(0, COUNTY_ZIP_LIMIT)
     const stateName = US_STATES.find((s) => s.abbr === stateAbbr)?.name ?? stateAbbr
     const countyLabel =
       selectedCountyNames.length <= 3 ? selectedCountyNames.join(", ") : `${selectedCountyNames.length} counties`
@@ -424,16 +449,15 @@ export function AdvancedSearchPage() {
       sortedCountyNames.length > MAX_LISTED_COUNTIES
         ? `${sortedCountyNames.length} counties`
         : joinWithAnd(sortedCountyNames)
-    setPendingZips(null)
     setCountyMatch(
-      pendingMatch
-        ? { matcher: pendingMatch, label: countyLabel, place: `${countyList}, ${stateName}`, zipCount: zips.length }
-        : null,
+      match ? { matcher: match, label: countyLabel, place: `${countyList}, ${stateName}`, zipCount: zips.length } : null,
     )
     setShowOutside(false)
     setPickerCollapsed(true)
-    runQueries("zipcode", zips, `${zips.length} ZIP codes in ${countyLabel}, ${stateName}`)
-  }, [pendingMatch, pendingZips, runQueries, selectedCountyNames, stateAbbr])
+    const zipSummary =
+      allZips.length > zips.length ? `the first ${zips.length} of ${allZips.length} ZIP codes` : `${zips.length} ZIP codes`
+    runQueries("zipcode", zips, `${zipSummary} in ${countyLabel}, ${stateName}`)
+  }, [fetchCountyZips, runQueries, selectedCounties, selectedCountyNames, stateAbbr])
 
   const outsideIds = useMemo(() => {
     const ids = new Set<string>()
@@ -613,7 +637,7 @@ export function AdvancedSearchPage() {
   return (
     <div className="container mx-auto px-3 md:px-4 py-6 md:py-10">
       <div className="text-center mb-6 md:mb-8">
-        <h2 className="text-2xl md:text-5xl font-bold text-foreground mb-2 md:mb-4 text-balance">Advanced Search</h2>
+        <h1 className="text-2xl md:text-5xl font-bold text-foreground mb-2 md:mb-4 text-balance">Advanced Search</h1>
         <p className="text-muted-foreground text-sm md:text-xl max-w-2xl mx-auto text-pretty">
           Look up FCC amateur and GMRS licenses by callsign, name, location (ZIP code or state and county), DMR ID, or FRN, one at a time or in bulk.
         </p>
@@ -642,7 +666,7 @@ export function AdvancedSearchPage() {
               setCounties([])
               setCountyFilter("")
               setSelectedCounties(new Set())
-              setGenerating(false)
+              setGenerating(null)
               setPendingZips(null)
               setPendingMatch(null)
               setCountyMatch(null)
@@ -882,14 +906,28 @@ export function AdvancedSearchPage() {
                     <li className="px-3 py-4 text-sm text-muted-foreground">No counties match that filter.</li>
                   )}
                 </ul>
-                <div>
+                <div className="flex flex-wrap items-center gap-2">
                   <Button
                     type="button"
-                    onClick={generateZips}
-                    disabled={selectedCounties.size === 0 || generating || isSearching}
+                    onClick={searchCountyLicenses}
+                    disabled={selectedCounties.size === 0 || generating !== null || isSearching}
                     className="gap-2"
                   >
-                    {generating ? (
+                    {generating === "search" || isSearching ? (
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    ) : (
+                      <Search className="h-4 w-4" aria-hidden="true" />
+                    )}
+                    Search county licenses
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={generateZips}
+                    disabled={selectedCounties.size === 0 || generating !== null || isSearching}
+                    className="gap-2"
+                  >
+                    {generating === "zips" ? (
                       <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                     ) : (
                       <MapPinned className="h-4 w-4" aria-hidden="true" />
@@ -903,33 +941,26 @@ export function AdvancedSearchPage() {
             <div aria-live="polite">
               {pendingZips && (
                 <div className="flex flex-col gap-3 rounded-md border border-primary/40 bg-primary/5 p-3" role="region" aria-labelledby="zip-confirm-heading">
-                  <h3 id="zip-confirm-heading" className="text-sm font-semibold text-foreground text-pretty">
+                  <h2 id="zip-confirm-heading" className="text-sm font-semibold text-foreground text-pretty">
                     {pendingZips.length === 0
                       ? "No ZIP codes were found for the selected counties."
-                      : `Found ${pendingZips.length} ZIP code${pendingZips.length === 1 ? "" : "s"} in ${selectedCountyNames.join(", ")}. Would you like to query ${pendingZips.length === 1 ? "it" : "them"}?`}
-                  </h3>
+                      : `${pendingZips.length} ZIP code${pendingZips.length === 1 ? "" : "s"} in ${joinWithAnd([...selectedCountyNames].sort((a, b) => a.localeCompare(b)))}`}
+                  </h2>
                   {pendingZips.length > 0 && (
-                    <>
-                      <p className="max-h-24 overflow-y-auto font-mono text-sm text-muted-foreground leading-relaxed break-words">
-                        {pendingZips.join(", ")}
-                      </p>
-                      {zipsOverLimit && (
-                        <p className="text-sm text-destructive">
-                          Only the first {COUNTY_ZIP_LIMIT} ZIP codes will be queried. Select fewer counties to search
-                          the rest.
-                        </p>
-                      )}
-                      <div className="flex flex-wrap gap-2">
-                        <Button type="button" onClick={confirmZipQuery} className="gap-2">
-                          <Search className="h-4 w-4" aria-hidden="true" />
-                          Yes, query {Math.min(pendingZips.length, COUNTY_ZIP_LIMIT)} ZIP codes
-                        </Button>
-                        <Button type="button" variant="outline" onClick={() => setPendingZips(null)}>
-                          No, cancel
-                        </Button>
-                      </div>
-                    </>
+                    <p className="max-h-40 overflow-y-auto font-mono text-sm text-muted-foreground leading-relaxed break-words select-all">
+                      {pendingZips.join(", ")}
+                    </p>
                   )}
+                  {zipsOverLimit && (
+                    <p className="text-sm text-muted-foreground">
+                      Searching county licenses uses the first {COUNTY_ZIP_LIMIT} ZIP codes.
+                    </p>
+                  )}
+                  <div>
+                    <Button type="button" variant="outline" onClick={() => setPendingZips(null)}>
+                      Hide ZIP codes
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
@@ -1059,7 +1090,16 @@ export function AdvancedSearchPage() {
                           setPage(1)
                         }}
                       >
-                        <SelectTrigger className="flex-1 sm:w-44" aria-label="Filter by service">
+                        <SelectTrigger
+                          aria-label="Filter by service"
+                          className={cn(
+                            "flex-1 gap-2 border-primary/60 font-medium sm:w-48",
+                            serviceFilter === "all"
+                              ? "bg-primary/10 text-foreground hover:bg-primary/20 dark:bg-primary/10 dark:hover:bg-primary/20 [&_svg]:!text-primary"
+                              : "border-primary bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary dark:hover:bg-primary/90 [&_svg]:!text-primary-foreground",
+                          )}
+                        >
+                          <Filter className="size-4 shrink-0" aria-hidden="true" />
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>

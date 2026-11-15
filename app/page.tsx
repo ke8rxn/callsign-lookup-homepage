@@ -271,13 +271,13 @@ export default function CallsignLookup() {
 
       {/* Header */}
       <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-3 py-2 md:px-4 md:py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 md:gap-4">
+        <div className="container mx-auto px-3 py-2 md:px-4 md:py-4 flex items-center justify-between gap-1">
+          <div className="flex min-w-0 items-center gap-2 md:gap-4">
             <div className="flex items-center gap-2 md:gap-3">
-              <div className="h-8 w-8 md:h-10 md:w-10 rounded-lg bg-primary flex items-center justify-center" aria-hidden="true">
+              <div className="hidden min-[360px]:flex h-8 w-8 md:h-10 md:w-10 rounded-lg bg-primary items-center justify-center" aria-hidden="true">
                 <Radio className="h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />
               </div>
-              <h1 className="sr-only sm:not-sr-only text-lg md:text-xl font-bold text-foreground">KE8RXN</h1>
+              <p className="sr-only sm:not-sr-only text-lg md:text-xl font-bold text-foreground">KE8RXN</p>
             </div>
             {/* View toggle: Callsign Lookup / Repeater Lookup */}
             <div
@@ -298,11 +298,11 @@ export default function CallsignLookup() {
               <button
                 role="tab"
                 id="tab-callsign"
-                aria-controls="panel-callsign"
+                aria-controls={view === "callsign" ? "panel-callsign" : undefined}
                 aria-selected={view === "callsign"}
                 tabIndex={view === "callsign" ? 0 : -1}
                 onClick={() => setView("callsign")}
-                className={`rounded-md px-2.5 py-1 text-sm font-medium transition-colors ${
+                className={`rounded-md px-2 sm:px-2.5 py-1 text-sm font-medium transition-colors ${
                   view === "callsign"
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -313,11 +313,11 @@ export default function CallsignLookup() {
               <button
                 role="tab"
                 id="tab-advanced"
-                aria-controls="panel-advanced"
+                aria-controls={view === "advanced" ? "panel-advanced" : undefined}
                 aria-selected={view === "advanced"}
                 tabIndex={view === "advanced" ? 0 : -1}
                 onClick={() => setView("advanced")}
-                className={`rounded-md px-2.5 py-1 text-sm font-medium transition-colors ${
+                className={`rounded-md px-2 sm:px-2.5 py-1 text-sm font-medium transition-colors ${
                   view === "advanced"
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -328,11 +328,11 @@ export default function CallsignLookup() {
               <button
                 role="tab"
                 id="tab-repeater"
-                aria-controls="panel-repeater"
+                aria-controls={view === "repeater" ? "panel-repeater" : undefined}
                 aria-selected={view === "repeater"}
                 tabIndex={view === "repeater" ? 0 : -1}
                 onClick={() => setView("repeater")}
-                className={`rounded-md px-2.5 py-1 text-sm font-medium transition-colors ${
+                className={`rounded-md px-2 sm:px-2.5 py-1 text-sm font-medium transition-colors ${
                   view === "repeater"
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -342,7 +342,7 @@ export default function CallsignLookup() {
               </button>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
             {/* Mobile Menu */}
             <div className="relative md:hidden">
               <Button
@@ -681,9 +681,9 @@ export default function CallsignLookup() {
         {/* Hero Section with Search */}
         <section className="py-6 md:py-14 bg-gradient-to-b from-card to-background" aria-labelledby="search-heading">
           <div className="container mx-auto px-3 md:px-4 text-center">
-            <h2 id="search-heading" className="text-2xl md:text-5xl font-bold text-foreground mb-2 md:mb-4 text-balance">
+            <h1 id="search-heading" className="text-2xl md:text-5xl font-bold text-foreground mb-2 md:mb-4 text-balance">
               Callsign Lookup
-            </h2>
+            </h1>
             <p className="text-muted-foreground text-sm md:text-xl mb-1 md:mb-2 max-w-2xl mx-auto text-pretty">
               Search for single or multiple amateur radio or GMRS callsigns.
             </p>
@@ -761,11 +761,20 @@ export default function CallsignLookup() {
               </Button>
             </div>
 
+            <p className="sr-only" role="status" aria-live="polite">
+              {isSearching
+                ? "Searching..."
+                : hasSearched
+                  ? `${searchResults.length} ${searchResults.length === 1 ? "result" : "results"} found.${
+                      notFound.length > 0 ? ` No results for ${notFound.join(", ")}.` : ""
+                    }`
+                  : ""}
+            </p>
+
             {/* Search Results */}
             {hasSearched && !isSearching && (
               <section 
                 aria-label="Search results" 
-                aria-live="polite"
                 className={`mx-auto mt-4 md:mt-8 grid gap-3 md:gap-4 ${
                   searchResults.length === 1 
                     ? "max-w-2xl grid-cols-1" 
@@ -872,7 +881,7 @@ export default function CallsignLookup() {
                 })}
                 
                 {notFound.length > 0 && (
-                  <Card className="bg-card border-border" role="status" aria-live="polite">
+                  <Card className="bg-card border-border">
                     <CardContent className="py-4 md:py-6 text-center">
                       <p className="text-muted-foreground">No results found for: {notFound.join(", ")}</p>
                       <p className="text-sm text-muted-foreground mt-2">Make sure you entered valid US callsigns</p>
@@ -881,7 +890,7 @@ export default function CallsignLookup() {
                 )}
 
                 {searchResults.length === 0 && notFound.length === 0 && (
-                  <Card className="bg-card border-border" role="status" aria-live="polite">
+                  <Card className="bg-card border-border">
                     <CardContent className="py-6 md:py-8 text-center">
                       <p className="text-muted-foreground">No results found</p>
                       <p className="text-sm text-muted-foreground mt-2">Make sure you entered valid US callsigns</p>
@@ -896,9 +905,9 @@ export default function CallsignLookup() {
         {/* Feature Cards */}
         <section className="py-8 md:py-16 bg-background" aria-labelledby="features-heading">
             <div className="container mx-auto px-3 md:px-4">
-              <h3 id="features-heading" className="text-xl md:text-2xl font-semibold text-foreground text-center mb-6 md:mb-10">
+              <h2 id="features-heading" className="text-xl md:text-2xl font-semibold text-foreground text-center mb-6 md:mb-10">
                 What You Can Find
-              </h3>
+              </h2>
               <div className="grid grid-cols-3 md:grid-cols-3 gap-2 md:gap-6" role="list">
                 <Card className="bg-card border-border hover:shadow-lg hover:shadow-accent/10 transition-shadow" role="listitem">
                   <CardHeader className="p-3 md:p-6">
@@ -950,10 +959,12 @@ export default function CallsignLookup() {
                 <p className="text-xl md:text-4xl font-bold text-primary" aria-label="Over 1 million US callsigns">1M+</p>
                 <p className="text-sm text-muted-foreground mt-0.5 md:mt-1">US Callsigns</p>
               </div>
-              <a href="https://www.fcc.gov/wireless/universal-licensing-system" target="_blank" rel="noopener noreferrer" role="listitem" className="hover:opacity-80 transition-opacity" aria-label="FCC Database (opens in new window)">
-                <p className="text-xl md:text-4xl font-bold text-primary" aria-hidden="true">FCC</p>
-                <p className="text-sm text-muted-foreground mt-0.5 md:mt-1" aria-hidden="true">Database</p>
-              </a>
+<div role="listitem">
+  <a href="https://www.fcc.gov/wireless/universal-licensing-system" target="_blank" rel="noopener noreferrer" className="block rounded-md hover:opacity-80 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card" aria-label="FCC Database (opens in new window)">
+  <p className="text-xl md:text-4xl font-bold text-primary" aria-hidden="true">FCC</p>
+  <p className="text-sm text-muted-foreground mt-0.5 md:mt-1" aria-hidden="true">Database</p>
+  </a>
+  </div>
               <div role="listitem">
                 <p className="text-xl md:text-4xl font-bold text-primary">Live</p>
                 <p className="text-sm text-muted-foreground mt-0.5 md:mt-1">Lookup</p>
