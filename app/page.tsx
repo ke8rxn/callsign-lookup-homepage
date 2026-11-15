@@ -745,7 +745,7 @@ export default function CallsignLookup() {
               </div>
             </form>
 
-            <div className="max-w-xl mx-auto mt-4 md:mt-5 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 text-sm md:text-base text-muted-foreground">
+            <div className="max-w-xl mx-auto mt-4 md:mt-5 flex flex-col sm:flex-row items-start sm:items-center justify-start text-left gap-2 sm:gap-3 text-sm md:text-base text-muted-foreground">
               <span>Need to search by name, ZIP code, county, DMR ID, or FRN?</span>
               <Button
                 type="button"
