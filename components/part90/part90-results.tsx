@@ -4,6 +4,7 @@ import type { RefObject } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CallsignLink, Field, ServiceBadge, ServiceLegend } from "@/components/part90/part90-shared"
+import { Part90LicensePopup } from "@/components/part90/part90-license-popup"
 import {
   PAGE_SIZE,
   detectKind,
@@ -141,8 +142,12 @@ export function Part90Results({ data, summary, headingRef, detailHref, onOpenDet
                     <td className={`${td} font-mono`}>{r.frn}</td>
                     {kind === "location" ? (
                       <>
-                        <td className={`${td} text-right tabular-nums`}>{r.location_count?.toLocaleString()}</td>
-                        <td className={`${td} text-right tabular-nums`}>{r.frequency_count?.toLocaleString()}</td>
+                        <td className={`${td} text-right`}>
+                          <Part90LicensePopup kind="locations" callsign={r.callsign} licensee={r.licensee_name} count={r.location_count} onOpenDetail={onOpenDetail} />
+                        </td>
+                        <td className={`${td} text-right`}>
+                          <Part90LicensePopup kind="frequencies" callsign={r.callsign} licensee={r.licensee_name} count={r.frequency_count} onOpenDetail={onOpenDetail} />
+                        </td>
                       </>
                     ) : (
                       <>
@@ -191,8 +196,16 @@ export function Part90Results({ data, summary, headingRef, detailHref, onOpenDet
                   {r.frn && <Field label="FRN"><span className="font-mono">{r.frn}</span></Field>}
                   {kind === "location" ? (
                     <>
-                      {r.location_count != null && <Field label="Licensed locations">{r.location_count.toLocaleString()}</Field>}
-                      {r.frequency_count != null && <Field label="Frequency records">{r.frequency_count.toLocaleString()}</Field>}
+                      {r.location_count != null && (
+                        <Field label="Licensed locations">
+                          <Part90LicensePopup kind="locations" callsign={r.callsign} licensee={r.licensee_name} count={r.location_count} onOpenDetail={onOpenDetail} />
+                        </Field>
+                      )}
+                      {r.frequency_count != null && (
+                        <Field label="Frequency records">
+                          <Part90LicensePopup kind="frequencies" callsign={r.callsign} licensee={r.licensee_name} count={r.frequency_count} onOpenDetail={onOpenDetail} />
+                        </Field>
+                      )}
                     </>
                   ) : (
                     <>
