@@ -63,7 +63,7 @@ const SEARCH_TYPES: Record<SearchType, SearchTypeConfig> = {
   },
   frn: {
     label: "FRN",
-    placeholder: "0030822506",
+    placeholder: "0036850956",
     hint: "Enter FCC Registration Numbers, separated by commas, spaces, or new lines. Up to 25 at a time.",
     maxQueries: 25,
     split: (input) => input.split(/[,;\s]+/),
@@ -72,7 +72,7 @@ const SEARCH_TYPES: Record<SearchType, SearchTypeConfig> = {
   },
   name: {
     label: "Name",
-    placeholder: "McConkey, Collin\nSmith, John",
+    placeholder: "Smith, John\nDoe, Jane",
     hint: "Enter a last name, or \"Last, First\". Put each name on its own line or separate with semicolons. Up to 10 at a time.",
     maxQueries: 10,
     split: (input) => input.split(/[;\n]+/),
