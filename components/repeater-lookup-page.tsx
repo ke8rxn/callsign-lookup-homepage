@@ -378,7 +378,7 @@ export function RepeaterLookupPage() {
   return (
     <div className="container mx-auto px-3 md:px-4 py-6 md:py-10">
       <div className="text-center mb-6 md:mb-8">
-        <h2 className="text-2xl md:text-5xl font-bold text-foreground mb-2 md:mb-4 text-balance">Repeater Lookup</h2>
+        <h1 className="text-2xl md:text-5xl font-bold text-foreground mb-2 md:mb-4 text-balance">Repeater Lookup</h1>
         <p className="text-muted-foreground text-sm md:text-xl max-w-2xl mx-auto text-pretty">
           Find nearby amateur radio repeaters by location, then filter and sort the results.
         </p>

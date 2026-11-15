@@ -637,7 +637,7 @@ export function AdvancedSearchPage() {
   return (
     <div className="container mx-auto px-3 md:px-4 py-6 md:py-10">
       <div className="text-center mb-6 md:mb-8">
-        <h2 className="text-2xl md:text-5xl font-bold text-foreground mb-2 md:mb-4 text-balance">Advanced Search</h2>
+        <h1 className="text-2xl md:text-5xl font-bold text-foreground mb-2 md:mb-4 text-balance">Advanced Search</h1>
         <p className="text-muted-foreground text-sm md:text-xl max-w-2xl mx-auto text-pretty">
           Look up FCC amateur and GMRS licenses by callsign, name, location (ZIP code or state and county), DMR ID, or FRN, one at a time or in bulk.
         </p>
@@ -941,11 +941,11 @@ export function AdvancedSearchPage() {
             <div aria-live="polite">
               {pendingZips && (
                 <div className="flex flex-col gap-3 rounded-md border border-primary/40 bg-primary/5 p-3" role="region" aria-labelledby="zip-confirm-heading">
-                  <h3 id="zip-confirm-heading" className="text-sm font-semibold text-foreground text-pretty">
+                  <h2 id="zip-confirm-heading" className="text-sm font-semibold text-foreground text-pretty">
                     {pendingZips.length === 0
                       ? "No ZIP codes were found for the selected counties."
                       : `${pendingZips.length} ZIP code${pendingZips.length === 1 ? "" : "s"} in ${joinWithAnd([...selectedCountyNames].sort((a, b) => a.localeCompare(b)))}`}
-                  </h3>
+                  </h2>
                   {pendingZips.length > 0 && (
                     <p className="max-h-40 overflow-y-auto font-mono text-sm text-muted-foreground leading-relaxed break-words select-all">
                       {pendingZips.join(", ")}
