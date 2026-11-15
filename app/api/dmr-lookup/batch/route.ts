@@ -1,48 +1,38 @@
 import { NextResponse } from "next/server"
+import { lookupDmrIds } from "@/lib/dmr-directory"
 
-const MAX_CALLSIGNS = 50
-const CONCURRENCY = 6
+const MAX_CALLSIGNS = 5000
 const CALLSIGN_PATTERN = /^[A-Z0-9]{3,8}$/
 
-async function lookupDmrId(callsign: string): Promise<string | null> {
+function normalize(input: unknown): string[] {
+  const list = Array.isArray(input) ? input : typeof input === "string" ? input.split(",") : []
+  return Array.from(
+    new Set(
+      list
+        .filter((c): c is string => typeof c === "string")
+        .map((c) => c.trim().toUpperCase())
+        .filter((c) => CALLSIGN_PATTERN.test(c)),
+    ),
+  ).slice(0, MAX_CALLSIGNS)
+}
+
+async function respond(callsigns: string[]) {
+  if (callsigns.length === 0) {
+    return NextResponse.json({ error: "At least one valid callsign is required" }, { status: 400 })
+  }
   try {
-    const response = await fetch(`https://radioid.net/api/dmr/user/?callsign=${encodeURIComponent(callsign)}`, {
-      next: { revalidate: 86400 },
-    })
-    if (!response.ok) return null
-    const data = await response.json()
-    return data.results?.length ? String(data.results[0].id) : null
+    return NextResponse.json({ dmrIds: await lookupDmrIds(callsigns) })
   } catch {
-    return null
+    return NextResponse.json({ error: "DMR directory is temporarily unavailable" }, { status: 503 })
   }
 }
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const callsigns = Array.from(
-    new Set(
-      (searchParams.get("callsigns") || "")
-        .split(",")
-        .map((c) => c.trim().toUpperCase())
-        .filter((c) => CALLSIGN_PATTERN.test(c)),
-    ),
-  ).slice(0, MAX_CALLSIGNS)
+  return respond(normalize(searchParams.get("callsigns") || ""))
+}
 
-  if (callsigns.length === 0) {
-    return NextResponse.json({ error: "At least one valid callsign is required" }, { status: 400 })
-  }
-
-  const dmrIds: Record<string, string> = {}
-  let next = 0
-  // RadioID only accepts one callsign per request, so run a small worker pool.
-  const workers = Array.from({ length: Math.min(CONCURRENCY, callsigns.length) }, async () => {
-    while (next < callsigns.length) {
-      const callsign = callsigns[next++]
-      const id = await lookupDmrId(callsign)
-      if (id) dmrIds[callsign] = id
-    }
-  })
-  await Promise.all(workers)
-
-  return NextResponse.json({ dmrIds })
+export async function POST(request: Request) {
+  const body = await request.json().catch(() => null)
+  return respond(normalize(body?.callsigns))
 }
