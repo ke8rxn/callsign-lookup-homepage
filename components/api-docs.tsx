@@ -16,14 +16,21 @@ const ENDPOINTS = [
   { path: "/frn/", example: "0036850956", description: "All licenses held under an FCC Registration Number." },
   { path: "/name/", example: "Smith, John", description: "Licenses matching a licensee name (Last, First)." },
   { path: "/zipcode/", example: "49544", description: "All licenses with a mailing address in a ZIP code." },
+  {
+    path: "/part90/callsign/",
+    example: "WPCG711",
+    description: "Part 90 Industrial/Business license with its licensed locations and frequencies.",
+  },
+  {
+    path: "/part90/frequency/",
+    example: "154.370",
+    description: "Active IG/YG frequency records on an exact frequency (MHz).",
+  },
 ]
 
 const DATA_SOURCES = [
   { name: "RadioID.net", href: "https://radioid.net", use: "DMR ID lookups" },
-  { name: "HearHam", href: "https://hearham.com", use: "Repeater directory" },
   { name: "US Census Bureau", href: "https://www.census.gov/geographies/reference-files.html", use: "ZIP-to-county and city data" },
-  { name: "Zippopotam.us", href: "https://zippopotam.us", use: "ZIP code coordinates" },
-  { name: "ipapi", href: "https://ipapi.co", use: "Approximate location for repeater search" },
 ]
 
 async function writeClipboard(text: string) {
