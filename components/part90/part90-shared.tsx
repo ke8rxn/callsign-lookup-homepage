@@ -9,7 +9,7 @@ export function ServiceBadge({ service }: { service: string | null | undefined }
   return (
     <span
       className={`inline-flex shrink-0 items-center rounded px-2 py-0.5 text-sm font-medium ${
-        service === "YG" ? "bg-primary/20 text-primary" : "bg-accent/15 text-foreground ring-1 ring-inset ring-accent/60"
+        service === "YG" ? "bg-primary/15 text-foreground ring-1 ring-inset ring-primary/60" : "bg-accent/15 text-foreground ring-1 ring-inset ring-accent/60"
       }`}
       title={known ? SERVICE_LABELS[service] : undefined}
     >
