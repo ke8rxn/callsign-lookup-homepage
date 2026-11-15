@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { lookupCallsignByDmrId } from "@/lib/dmr-directory"
 
 const API_BASE = "https://api.ke8rxnwx.net"
 const MAX_RESULTS = 1000
@@ -18,12 +19,7 @@ function isSearchType(value: string | null): value is SearchType {
 }
 
 async function callsignForDmrId(id: string): Promise<string | null> {
-  const response = await fetch(`https://radioid.net/api/dmr/user/?id=${encodeURIComponent(id)}`, {
-    next: { revalidate: 86400 },
-  })
-  if (!response.ok) throw new Error(`RadioID returned ${response.status}`)
-  const data = await response.json()
-  const callsign = data.results?.[0]?.callsign
+  const callsign = await lookupCallsignByDmrId(id)
   return typeof callsign === "string" && /^[A-Za-z0-9]{3,7}$/.test(callsign) ? callsign.toLowerCase() : null
 }
 

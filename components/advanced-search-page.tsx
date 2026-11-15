@@ -32,20 +32,19 @@ import { US_STATES } from "@/lib/us-states"
 
 const fetchJson = (url: string) => fetch(url).then((res) => res.json())
 
-const DMR_BATCH_SIZE = 50
-const DMR_PARALLEL_BATCHES = 3
+const DMR_BATCH_SIZE = 5000
 
 async function fetchAllDmrIds(callsigns: string[]): Promise<Record<string, string>> {
-  const batches: string[][] = []
-  for (let i = 0; i < callsigns.length; i += DMR_BATCH_SIZE) batches.push(callsigns.slice(i, i + DMR_BATCH_SIZE))
   const merged: Record<string, string> = {}
-  for (let i = 0; i < batches.length; i += DMR_PARALLEL_BATCHES) {
-    const responses = await Promise.all(
-      batches.slice(i, i + DMR_PARALLEL_BATCHES).map((batch) =>
-        fetchJson(`/api/dmr-lookup/batch?callsigns=${batch.join(",")}`).catch(() => null),
-      ),
-    )
-    for (const res of responses) Object.assign(merged, res?.dmrIds ?? {})
+  for (let i = 0; i < callsigns.length; i += DMR_BATCH_SIZE) {
+    const res = await fetch("/api/dmr-lookup/batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ callsigns: callsigns.slice(i, i + DMR_BATCH_SIZE) }),
+    })
+    // Throw instead of returning partial data so a failed lookup never reads as "no DMR ID".
+    if (!res.ok) throw new Error(`DMR lookup failed (${res.status})`)
+    Object.assign(merged, (await res.json()).dmrIds ?? {})
   }
   return merged
 }
