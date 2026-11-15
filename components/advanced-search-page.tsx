@@ -633,11 +633,35 @@ export function AdvancedSearchPage() {
             variant="outline"
             value={searchType}
             onValueChange={(v) => {
-              if (!v) return
+              if (!v || v === searchType) return
+              abortRef.current?.abort()
               setSearchType(v as SearchType)
               setInput("")
               setInputError(null)
+              setZipMode("county")
+              setStateAbbr("")
+              setCounties([])
+              setCountyFilter("")
+              setSelectedCounties(new Set())
+              setGenerating(false)
               setPendingZips(null)
+              setPendingMatch(null)
+              setCountyMatch(null)
+              setShowOutside(false)
+              setPickerCollapsed(false)
+              setIsSearching(false)
+              setProgress({ done: 0, total: 0 })
+              setHasSearched(false)
+              setResults([])
+              setNotFound([])
+              setFailed([])
+              setTruncated([])
+              setLastSearchLabel("")
+              setFilterText("")
+              setServiceFilter("all")
+              setSortKey("amateur")
+              setSortDir("asc")
+              setPage(1)
             }}
             aria-labelledby="search-type-label"
             className="grid w-full grid-cols-3 sm:grid-cols-5"
@@ -1149,7 +1173,7 @@ export function AdvancedSearchPage() {
                               </td>
                               <td className="px-3 py-2 text-muted-foreground lg:px-2">{r.state || "—"}</td>
                               <td className="px-3 py-2 text-muted-foreground lg:px-2">{r.zip || "—"}</td>
-                              <td className="px-3 py-2 font-mono text-xs text-muted-foreground lg:px-2">
+                              <td className="px-3 py-2 text-muted-foreground lg:px-2">
                                 {dmrId ? (
                                   dmrId
                                 ) : amateurCall && dmrLoading ? (
@@ -1161,7 +1185,7 @@ export function AdvancedSearchPage() {
                                   "—"
                                 )}
                               </td>
-                              <td className="px-3 py-2 font-mono text-xs text-muted-foreground lg:px-2">{r.frn || "—"}</td>
+                              <td className="px-3 py-2 text-muted-foreground lg:px-2">{r.frn || "—"}</td>
                             </tr>
                           )
                         })}
