@@ -174,7 +174,7 @@ function CallsignCell({ records }: { records: CallsignRecord[] }) {
 
 export function AdvancedSearchPage() {
   const [searchType, setSearchType] = useState<SearchType>("callsign")
-  const [zipMode, setZipMode] = useState<ZipMode>("manual")
+  const [zipMode, setZipMode] = useState<ZipMode>("county")
   const [input, setInput] = useState("")
   const [inputError, setInputError] = useState<string | null>(null)
 
