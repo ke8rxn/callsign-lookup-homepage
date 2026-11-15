@@ -508,13 +508,13 @@ export function AdvancedSearchPage() {
         <p className="text-muted-foreground text-sm md:text-xl max-w-2xl mx-auto text-pretty">
           Look up FCC amateur and GMRS licenses by callsign, FRN, name, or location (ZIP code or state and county), one at a time or in bulk.
         </p>
-        <p className="mt-3 text-sm text-muted-foreground max-w-2xl mx-auto text-pretty">
+        <p className="mt-3 text-sm text-muted-foreground max-w-2xl mx-auto text-left text-pretty">
           Only active FCC amateur radio and GMRS licenses are searched. Expired, cancelled, and terminated licenses are not included.
         </p>
       </div>
 
-      <div className="max-w-2xl mx-auto flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
+      <div className={`${showCountyPicker ? "max-w-6xl" : "max-w-2xl"} mx-auto flex flex-col gap-4`}>
+        <div className="mx-auto flex w-full max-w-2xl flex-col gap-2">
           <span id="search-type-label" className="text-sm font-medium text-foreground">
             Search by
           </span>
@@ -545,7 +545,7 @@ export function AdvancedSearchPage() {
         </div>
 
         {searchType === "zipcode" && (
-          <div className="flex flex-col gap-2">
+          <div className="mx-auto flex w-full max-w-2xl flex-col gap-2">
             <span id="zip-mode-label" className="text-sm font-medium text-foreground">
                 Search location by
             </span>
@@ -714,7 +714,7 @@ export function AdvancedSearchPage() {
                     </Button>
                   </div>
                 </div>
-                <ul className="max-h-64 overflow-y-auto rounded-md border border-border grid grid-cols-1 sm:grid-cols-2">
+                <ul className="max-h-96 overflow-y-auto rounded-md border border-border grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                   {visibleCounties.map((c) => {
                     const id = `county-${c.fips}`
                     return (
