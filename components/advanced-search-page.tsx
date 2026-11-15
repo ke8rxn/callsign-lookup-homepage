@@ -28,6 +28,7 @@ import {
   isAmateurRadio,
 } from "@/lib/license-format"
 import { US_STATES } from "@/lib/us-states"
+import { type CountyMatcher, isInSelectedCounties } from "@/lib/county-match"
 
 type SearchType = "callsign" | "frn" | "name" | "zipcode"
 type ZipMode = "manual" | "county"
@@ -53,7 +54,7 @@ interface SearchTypeConfig {
 const SEARCH_TYPES: Record<SearchType, SearchTypeConfig> = {
   callsign: {
     label: "Callsign",
-    placeholder: "KE8RXN, W8LRC, K8SN",
+    placeholder: "KC8EST, K8OEC, W8SAT",
     hint: "Separate multiple callsigns with commas, spaces, or new lines. Up to 25 at a time.",
     maxQueries: 25,
     split: (input) => input.split(/[,;\s]+/),
@@ -126,6 +127,9 @@ export function AdvancedSearchPage() {
   const [selectedCounties, setSelectedCounties] = useState<Set<string>>(new Set())
   const [generating, setGenerating] = useState(false)
   const [pendingZips, setPendingZips] = useState<string[] | null>(null)
+  const [pendingMatch, setPendingMatch] = useState<CountyMatcher | null>(null)
+  const [countyMatch, setCountyMatch] = useState<{ matcher: CountyMatcher; label: string } | null>(null)
+  const [showOutside, setShowOutside] = useState(false)
 
   // Search execution & results
   const [isSearching, setIsSearching] = useState(false)
@@ -236,6 +240,7 @@ export function AdvancedSearchPage() {
         return
       }
       setInputError(null)
+      setCountyMatch(null)
       runQueries(searchType, values, `${values.length} ${config.label.toLowerCase()}${values.length === 1 ? "" : " queries"}`)
     },
     [config, input, runQueries, searchType],
@@ -290,6 +295,7 @@ export function AdvancedSearchPage() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.error)
       setPendingZips(data.zips)
+      setPendingMatch(data.match)
     } catch {
       setInputError("Couldn't generate ZIP codes for those counties. Please try again.")
     } finally {
@@ -304,12 +310,24 @@ export function AdvancedSearchPage() {
     const countyLabel =
       selectedCountyNames.length <= 3 ? selectedCountyNames.join(", ") : `${selectedCountyNames.length} counties`
     setPendingZips(null)
+    setCountyMatch(pendingMatch ? { matcher: pendingMatch, label: countyLabel } : null)
+    setShowOutside(false)
     runQueries("zipcode", zips, `${zips.length} ZIP codes in ${countyLabel}, ${stateName}`)
-  }, [pendingZips, runQueries, selectedCountyNames, stateAbbr])
+  }, [pendingMatch, pendingZips, runQueries, selectedCountyNames, stateAbbr])
+
+  const outsideIds = useMemo(() => {
+    const ids = new Set<string>()
+    if (!countyMatch) return ids
+    for (const r of results) {
+      if (!isInSelectedCounties(r, countyMatch.matcher)) ids.add(r.usid)
+    }
+    return ids
+  }, [results, countyMatch])
 
   const filteredResults = useMemo(() => {
     const q = filterText.trim().toLowerCase()
     const filtered = results.filter((r) => {
+      if (!showOutside && outsideIds.has(r.usid)) return false
       if (serviceFilter === "amateur" && !isAmateurRadio(r.service)) return false
       if (serviceFilter === "gmrs" && isAmateurRadio(r.service)) return false
       if (!q) return true
@@ -320,7 +338,7 @@ export function AdvancedSearchPage() {
       const cmp = sortValue(a, sortKey).localeCompare(sortValue(b, sortKey), undefined, { numeric: true })
       return sortDir === "asc" ? cmp : -cmp
     })
-  }, [results, filterText, serviceFilter, sortKey, sortDir])
+  }, [results, filterText, serviceFilter, sortKey, sortDir, showOutside, outsideIds])
 
   const pageCount = Math.max(1, Math.ceil(filteredResults.length / PAGE_SIZE))
   const currentPage = Math.min(page, pageCount)
@@ -773,6 +791,32 @@ export function AdvancedSearchPage() {
                   </div>
                 </div>
 
+                {countyMatch && outsideIds.size > 0 && (
+                  <div className="flex flex-col gap-2 rounded-lg border border-border bg-card p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-muted-foreground text-pretty">
+                      <span className="font-medium text-foreground">
+                        {outsideIds.size.toLocaleString()} license{outsideIds.size === 1 ? "" : "s"}
+                      </span>{" "}
+                      {outsideIds.size === 1 ? "has" : "have"} a city outside {countyMatch.label}, from ZIP codes that
+                      cross county lines.{" "}
+                      {showOutside ? "They are marked below." : "They are hidden."}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="shrink-0"
+                      aria-pressed={showOutside}
+                      onClick={() => {
+                        setShowOutside((v) => !v)
+                        setPage(1)
+                      }}
+                    >
+                      {showOutside ? "Hide outside licenses" : "Show outside licenses"}
+                    </Button>
+                  </div>
+                )}
+
                 {filteredResults.length === 0 ? (
                   <p className="rounded-lg border border-border py-8 text-center text-muted-foreground">
                     No results match your filters.
@@ -830,7 +874,14 @@ export function AdvancedSearchPage() {
                               <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
                                 {r.street ? formatStreet(r.street) : "—"}
                               </td>
-                              <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{r.city || "—"}</td>
+                              <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
+                                {r.city || "—"}
+                                {outsideIds.has(r.usid) && (
+                                  <span className="ml-1.5 rounded bg-muted px-1.5 py-0.5 text-xs text-foreground">
+                                    Outside county
+                                  </span>
+                                )}
+                              </td>
                               <td className="px-3 py-2 text-muted-foreground">{r.state || "—"}</td>
                               <td className="px-3 py-2 text-muted-foreground">{r.zip || "—"}</td>
                               <td className="px-3 py-2 font-mono text-xs text-muted-foreground">{r.frn || "—"}</td>
