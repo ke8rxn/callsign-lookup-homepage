@@ -89,7 +89,7 @@ const SEARCH_TYPES: Record<SearchType, SearchTypeConfig> = {
     invalidMessage: "Names must be 2-60 letters and may include commas, periods, hyphens, and apostrophes.",
   },
   zipcode: {
-    label: "ZIP Code",
+    label: "Location",
     placeholder: "49544, 49335",
     hint: "Separate multiple 5-digit ZIP codes with commas, spaces, or new lines. Up to 50 at a time.",
     maxQueries: 50,
@@ -301,7 +301,8 @@ export function AdvancedSearchPage() {
       }
       setInputError(null)
       setCountyMatch(null)
-      runQueries(searchType, values, `${values.length} ${config.label.toLowerCase()}${values.length === 1 ? "" : " queries"}`)
+      const summaryNoun = searchType === "zipcode" ? "ZIP code" : config.label.toLowerCase()
+    runQueries(searchType, values, `${values.length} ${summaryNoun}${values.length === 1 ? "" : searchType === "zipcode" ? "s" : " queries"}`)
     },
     [config, input, runQueries, searchType],
   )
@@ -505,7 +506,7 @@ export function AdvancedSearchPage() {
       <div className="text-center mb-6 md:mb-8">
         <h2 className="text-2xl md:text-5xl font-bold text-foreground mb-2 md:mb-4 text-balance">Advanced Search</h2>
         <p className="text-muted-foreground text-sm md:text-xl max-w-2xl mx-auto text-pretty">
-          Look up FCC amateur and GMRS licenses by callsign, FRN, name, or ZIP code, one at a time or in bulk.
+          Look up FCC amateur and GMRS licenses by callsign, FRN, name, or location (ZIP code or state and county), one at a time or in bulk.
         </p>
       </div>
 
@@ -543,7 +544,7 @@ export function AdvancedSearchPage() {
         {searchType === "zipcode" && (
           <div className="flex flex-col gap-2">
             <span id="zip-mode-label" className="text-sm font-medium text-foreground">
-              ZIP codes from
+                Search location by
             </span>
             <ToggleGroup
               type="single"
@@ -572,7 +573,7 @@ export function AdvancedSearchPage() {
         {!showCountyPicker ? (
           <form onSubmit={handleSubmit} role="search" aria-label={`${config.label} search`} className="flex flex-col gap-2">
             <label htmlFor="advanced-search-input" className="text-sm font-medium text-foreground">
-              {config.label}s
+              {searchType === "zipcode" ? "ZIP codes" : `${config.label}s`}
             </label>
             <Textarea
               id="advanced-search-input"
