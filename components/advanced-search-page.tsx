@@ -674,13 +674,20 @@ export function AdvancedSearchPage() {
                   <label htmlFor="county-filter" className="sr-only">
                     Filter counties
                   </label>
-                  <Input
-                    id="county-filter"
-                    value={countyFilter}
-                    onChange={(e) => setCountyFilter(e.target.value)}
-                    placeholder="Filter counties"
-                    className="flex-1"
-                  />
+  <div className="relative flex-1">
+  <Search
+  className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+  aria-hidden="true"
+  />
+  <Input
+  id="county-filter"
+  type="search"
+  value={countyFilter}
+  onChange={(e) => setCountyFilter(e.target.value)}
+  placeholder="Filter counties"
+  className="h-10 border-muted-foreground/50 bg-background pl-9 text-base text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-primary/40 dark:bg-background"
+  />
+  </div>
                   <div className="flex gap-2">
                     <Button
                       type="button"
