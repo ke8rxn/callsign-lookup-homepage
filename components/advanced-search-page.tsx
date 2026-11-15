@@ -854,12 +854,22 @@ export function AdvancedSearchPage() {
             ) : (
               <>
                 <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    <span className="sr-only">Search results: </span>
-                    Showing {filteredResults.length.toLocaleString()} of {rows.length.toLocaleString()} licensee
-                    {rows.length === 1 ? "" : "s"} ({results.length.toLocaleString()} license
-                    {results.length === 1 ? "" : "s"}) from {lastSearchLabel}.
-                  </p>
+                  <div className="flex flex-col gap-1">
+                    <p className="flex flex-wrap items-baseline gap-x-2 text-foreground">
+                      <span className="sr-only">Search results: </span>
+                      <span className="text-lg font-medium">Showing</span>
+                      <span className="text-3xl font-bold tabular-nums text-primary">
+                        {filteredResults.length.toLocaleString()}
+                      </span>
+                      <span className="text-lg font-medium">
+                        of {rows.length.toLocaleString()} licensee{rows.length === 1 ? "" : "s"}
+                      </span>
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {results.length.toLocaleString()} license{results.length === 1 ? "" : "s"} from{" "}
+                      {lastSearchLabel}.
+                    </p>
+                  </div>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <div>
                       <label htmlFor="results-filter" className="sr-only">
@@ -1009,9 +1019,17 @@ export function AdvancedSearchPage() {
                       <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                       Previous
                     </Button>
-                    <span className="text-sm text-muted-foreground" aria-current="page">
-                      Page {currentPage} of {pageCount}
-                    </span>
+                    <p className="flex flex-col items-center text-center" aria-current="page">
+                      <span className="text-base font-semibold text-foreground tabular-nums">
+                        {`Showing ${((currentPage - 1) * PAGE_SIZE + 1).toLocaleString()}–${Math.min(
+                          currentPage * PAGE_SIZE,
+                          filteredResults.length,
+                        ).toLocaleString()} of ${filteredResults.length.toLocaleString()}`}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        Page {currentPage} of {pageCount}
+                      </span>
+                    </p>
                     <Button
                       type="button"
                       size="sm"
