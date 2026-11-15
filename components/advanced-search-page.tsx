@@ -513,8 +513,8 @@ export function AdvancedSearchPage() {
         </p>
       </div>
 
-      <div className="max-w-2xl mx-auto flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
+      <div className={`${showCountyPicker ? "max-w-6xl" : "max-w-2xl"} mx-auto flex flex-col gap-4`}>
+        <div className="mx-auto flex w-full max-w-2xl flex-col gap-2">
           <span id="search-type-label" className="text-sm font-medium text-foreground">
             Search by
           </span>
@@ -545,7 +545,7 @@ export function AdvancedSearchPage() {
         </div>
 
         {searchType === "zipcode" && (
-          <div className="flex flex-col gap-2">
+          <div className="mx-auto flex w-full max-w-2xl flex-col gap-2">
             <span id="zip-mode-label" className="text-sm font-medium text-foreground">
                 Search location by
             </span>
@@ -714,7 +714,7 @@ export function AdvancedSearchPage() {
                     </Button>
                   </div>
                 </div>
-                <ul className="max-h-64 overflow-y-auto rounded-md border border-border grid grid-cols-1 sm:grid-cols-2">
+                <ul className="max-h-96 overflow-y-auto rounded-md border border-border grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                   {visibleCounties.map((c) => {
                     const id = `county-${c.fips}`
                     return (
