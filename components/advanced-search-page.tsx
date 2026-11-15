@@ -104,8 +104,8 @@ const SEARCH_TYPES: Record<SearchType, SearchTypeConfig> = {
   zipcode: {
     label: "Location",
     placeholder: "49544, 49335",
-    hint: "Separate multiple 5-digit ZIP codes with commas, spaces, or new lines. Up to 50 at a time.",
-    maxQueries: 50,
+    hint: "Separate multiple 5-digit ZIP codes with commas, spaces, or new lines. Up to 250 at a time.",
+    maxQueries: 250,
     split: (input) => input.split(/[,;\s]+/),
     validate: (v) => /^\d{5}$/.test(v),
     invalidMessage: "ZIP codes must be 5 digits.",
