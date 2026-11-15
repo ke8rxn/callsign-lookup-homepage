@@ -32,8 +32,17 @@ import { type CountyMatcher, isInSelectedCounties } from "@/lib/county-match"
 
 type SearchType = "callsign" | "frn" | "name" | "zipcode"
 type ZipMode = "manual" | "county"
-type SortKey = "callsign" | "name" | "service" | "class" | "city" | "state" | "zip" | "frn"
+type SortKey = "amateur" | "gmrs" | "name" | "class" | "city" | "state" | "zip" | "frn"
 type ServiceFilter = "all" | "amateur" | "gmrs"
+
+interface LicenseeRow {
+  key: string
+  primary: CallsignRecord
+  amateur: CallsignRecord[]
+  gmrs: CallsignRecord[]
+  records: CallsignRecord[]
+  outside: boolean
+}
 
 interface County {
   fips: string
@@ -100,17 +109,67 @@ const STATUS_LABELS: Record<string, string> = {
   T: "Terminated",
 }
 
-function sortValue(r: CallsignRecord, key: SortKey): string {
-  switch (key) {
-    case "service":
-      return isAmateurRadio(r.service) ? "Amateur" : "GMRS"
-    case "class":
-      return formatLicenseClass(r.class)
-    case "name":
-      return r.name || ""
-    default:
-      return (r[key] as string) || ""
+const activeFirst = (a: CallsignRecord, b: CallsignRecord) =>
+  Number(b.status === "A") - Number(a.status === "A") || a.callsign.localeCompare(b.callsign)
+
+// One row per licensee: records sharing an FRN (or, without one, the same name and address) are merged
+// so a person holding both Amateur and GMRS licenses appears once.
+function groupLicensees(records: CallsignRecord[], outsideIds: Set<string>): LicenseeRow[] {
+  const groups = new Map<string, CallsignRecord[]>()
+  for (const r of records) {
+    const key = r.frn
+      ? `frn:${r.frn}`
+      : `addr:${(r.name || "").toLowerCase()}|${(r.street || "").toLowerCase()}|${r.zip || ""}`
+    const list = groups.get(key)
+    if (list) list.push(r)
+    else groups.set(key, [r])
   }
+  return Array.from(groups, ([key, list]) => {
+    const amateur = list.filter((r) => isAmateurRadio(r.service)).sort(activeFirst)
+    const gmrs = list.filter((r) => !isAmateurRadio(r.service)).sort(activeFirst)
+    const primary =
+      amateur.find((r) => r.status === "A") ?? gmrs.find((r) => r.status === "A") ?? amateur[0] ?? gmrs[0]
+    return { key, primary, amateur, gmrs, records: list, outside: list.every((r) => outsideIds.has(r.usid)) }
+  })
+}
+
+function rowSortValue(row: LicenseeRow, key: SortKey): string {
+  switch (key) {
+    case "amateur":
+      return row.amateur[0]?.callsign ?? ""
+    case "gmrs":
+      return row.gmrs[0]?.callsign ?? ""
+    case "class":
+      return row.amateur[0] ? formatLicenseClass(row.amateur[0].class) : ""
+    case "name":
+      return formatName(row.primary.name)
+    default:
+      return (row.primary[key] as string) || ""
+  }
+}
+
+function callsignList(records: CallsignRecord[]): string {
+  return records
+    .map((r) => (r.status && r.status !== "A" ? `${r.callsign} (${STATUS_LABELS[r.status] || r.status})` : r.callsign))
+    .join("; ")
+}
+
+function CallsignCell({ records }: { records: CallsignRecord[] }) {
+  if (records.length === 0) return <span className="text-muted-foreground">—</span>
+  return (
+    <div className="flex flex-col gap-1">
+      {records.map((r) => (
+        <span key={r.usid} className="whitespace-nowrap font-semibold text-foreground">
+          {r.callsign}
+          {r.status && r.status !== "A" && (
+            <span className="ml-1.5 rounded bg-destructive/15 px-1.5 py-0.5 text-xs font-normal text-destructive">
+              {STATUS_LABELS[r.status] || r.status}
+            </span>
+          )}
+        </span>
+      ))}
+    </div>
+  )
 }
 
 export function AdvancedSearchPage() {
@@ -130,6 +189,7 @@ export function AdvancedSearchPage() {
   const [pendingMatch, setPendingMatch] = useState<CountyMatcher | null>(null)
   const [countyMatch, setCountyMatch] = useState<{ matcher: CountyMatcher; label: string } | null>(null)
   const [showOutside, setShowOutside] = useState(false)
+  const [pickerCollapsed, setPickerCollapsed] = useState(false)
 
   // Search execution & results
   const [isSearching, setIsSearching] = useState(false)
@@ -145,7 +205,7 @@ export function AdvancedSearchPage() {
   // Result table controls
   const [filterText, setFilterText] = useState("")
   const [serviceFilter, setServiceFilter] = useState<ServiceFilter>("all")
-  const [sortKey, setSortKey] = useState<SortKey>("callsign")
+  const [sortKey, setSortKey] = useState<SortKey>("amateur")
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc")
   const [page, setPage] = useState(1)
 
@@ -312,6 +372,7 @@ export function AdvancedSearchPage() {
     setPendingZips(null)
     setCountyMatch(pendingMatch ? { matcher: pendingMatch, label: countyLabel } : null)
     setShowOutside(false)
+    setPickerCollapsed(true)
     runQueries("zipcode", zips, `${zips.length} ZIP codes in ${countyLabel}, ${stateName}`)
   }, [pendingMatch, pendingZips, runQueries, selectedCountyNames, stateAbbr])
 
@@ -324,21 +385,28 @@ export function AdvancedSearchPage() {
     return ids
   }, [results, countyMatch])
 
+  const rows = useMemo(() => groupLicensees(results, outsideIds), [results, outsideIds])
+  const outsideRowCount = useMemo(() => rows.filter((r) => r.outside).length, [rows])
+
   const filteredResults = useMemo(() => {
     const q = filterText.trim().toLowerCase()
-    const filtered = results.filter((r) => {
-      if (!showOutside && outsideIds.has(r.usid)) return false
-      if (serviceFilter === "amateur" && !isAmateurRadio(r.service)) return false
-      if (serviceFilter === "gmrs" && isAmateurRadio(r.service)) return false
+    const filtered = rows.filter((row) => {
+      if (!showOutside && row.outside) return false
+      if (serviceFilter === "amateur" && row.amateur.length === 0) return false
+      if (serviceFilter === "gmrs" && row.gmrs.length === 0) return false
       if (!q) return true
-      return [r.callsign, r.name, formatName(r.name), r.city, r.state, r.zip, r.frn]
+      const p = row.primary
+      return [...row.records.map((r) => r.callsign), p.name, formatName(p.name), p.city, p.state, p.zip, p.frn]
         .some((field) => field?.toLowerCase().includes(q))
     })
     return filtered.sort((a, b) => {
-      const cmp = sortValue(a, sortKey).localeCompare(sortValue(b, sortKey), undefined, { numeric: true })
+      const av = rowSortValue(a, sortKey)
+      const bv = rowSortValue(b, sortKey)
+      if (!av !== !bv) return av ? -1 : 1
+      const cmp = av.localeCompare(bv, undefined, { numeric: true })
       return sortDir === "asc" ? cmp : -cmp
     })
-  }, [results, filterText, serviceFilter, sortKey, sortDir, showOutside, outsideIds])
+  }, [rows, filterText, serviceFilter, sortKey, sortDir, showOutside])
 
   const pageCount = Math.max(1, Math.ceil(filteredResults.length / PAGE_SIZE))
   const currentPage = Math.min(page, pageCount)
@@ -359,22 +427,34 @@ export function AdvancedSearchPage() {
 
   const exportToCSV = useCallback(() => {
     if (filteredResults.length === 0) return
-    const headers = ["Callsign", "Name", "Service", "License Class", "Status", "Street", "City", "State", "ZIP", "FRN"]
+    const headers = [
+      "Amateur Callsign",
+      "GMRS Callsign",
+      "Name",
+      "License Class",
+      "Street",
+      "City",
+      "State",
+      "ZIP",
+      "FRN",
+    ]
     const escapeCSV = (value: string) =>
       /[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value
-    const rows = filteredResults.map((r) => [
-      r.callsign,
-      formatName(r.name),
-      isAmateurRadio(r.service) ? "Amateur" : "GMRS",
-      isAmateurRadio(r.service) ? formatLicenseClass(r.class) : "",
-      r.status === "A" ? "Active" : STATUS_LABELS[r.status] || r.status || "",
-      r.street ? formatStreet(r.street) : "",
-      r.city || "",
-      r.state || "",
-      r.zip || "",
-      r.frn || "",
-    ])
-    const csv = [headers.join(","), ...rows.map((row) => row.map(escapeCSV).join(","))].join("\n")
+    const csvRows = filteredResults.map((row) => {
+      const p = row.primary
+      return [
+        callsignList(row.amateur),
+        callsignList(row.gmrs),
+        formatName(p.name),
+        row.amateur[0] ? formatLicenseClass(row.amateur[0].class) : "",
+        p.street ? formatStreet(p.street) : "",
+        p.city || "",
+        p.state || "",
+        p.zip || "",
+        p.frn || "",
+      ]
+    })
+    const csv = [headers.join(","), ...csvRows.map((row) => row.map(escapeCSV).join(","))].join("\n")
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }))
     const link = document.createElement("a")
     const iso = new Date().toISOString()
@@ -530,8 +610,32 @@ export function AdvancedSearchPage() {
               )}
             </div>
           </form>
+        ) : pickerCollapsed ? (
+          <div
+            className="flex flex-col gap-2 rounded-lg border border-border bg-card p-3 sm:flex-row sm:items-center sm:justify-between"
+            role="group"
+            aria-label="Selected state and counties"
+          >
+            <p className="line-clamp-2 text-sm text-muted-foreground text-pretty">
+              <span className="font-medium text-foreground">
+                {US_STATES.find((s) => s.abbr === stateAbbr)?.name ?? stateAbbr}:
+              </span>{" "}
+              {selectedCountyNames.join(", ")}
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="shrink-0"
+              aria-expanded={false}
+              aria-controls="county-picker"
+              onClick={() => setPickerCollapsed(false)}
+            >
+              Change counties
+            </Button>
+          </div>
         ) : (
-          <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-3 md:p-4" role="group" aria-label="Find ZIP codes by state and county">
+          <div id="county-picker" className="flex flex-col gap-3 rounded-lg border border-border bg-card p-3 md:p-4" role="group" aria-label="Find ZIP codes by state and county">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="county-state" className="text-sm font-medium text-foreground">
                 State
@@ -615,6 +719,7 @@ export function AdvancedSearchPage() {
                           id={id}
                           checked={selectedCounties.has(c.fips)}
                           onCheckedChange={(checked) => toggleCounty(c.fips, checked === true)}
+                          className="border-foreground/70 data-[state=checked]:border-foreground data-[state=checked]:bg-foreground data-[state=checked]:text-background"
                         />
                         <label htmlFor={id} className="flex-1 cursor-pointer text-sm text-foreground">
                           {c.name}{" "}
@@ -741,8 +846,9 @@ export function AdvancedSearchPage() {
                 <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                   <p className="text-sm text-muted-foreground">
                     <span className="sr-only">Search results: </span>
-                    Showing {filteredResults.length.toLocaleString()} of {results.length.toLocaleString()} license
-                    {results.length === 1 ? "" : "s"} from {lastSearchLabel}.
+                    Showing {filteredResults.length.toLocaleString()} of {rows.length.toLocaleString()} licensee
+                    {rows.length === 1 ? "" : "s"} ({results.length.toLocaleString()} license
+                    {results.length === 1 ? "" : "s"}) from {lastSearchLabel}.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <div>
@@ -791,13 +897,13 @@ export function AdvancedSearchPage() {
                   </div>
                 </div>
 
-                {countyMatch && outsideIds.size > 0 && (
+                {countyMatch && outsideRowCount > 0 && (
                   <div className="flex flex-col gap-2 rounded-lg border border-border bg-card p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-muted-foreground text-pretty">
                       <span className="font-medium text-foreground">
-                        {outsideIds.size.toLocaleString()} license{outsideIds.size === 1 ? "" : "s"}
+                        {outsideRowCount.toLocaleString()} licensee{outsideRowCount === 1 ? "" : "s"}
                       </span>{" "}
-                      {outsideIds.size === 1 ? "has" : "have"} a city outside {countyMatch.label}, from ZIP codes that
+                      {outsideRowCount === 1 ? "has" : "have"} a city outside {countyMatch.label}, from ZIP codes that
                       cross county lines.{" "}
                       {showOutside ? "They are marked below." : "They are hidden."}
                     </p>
@@ -829,9 +935,9 @@ export function AdvancedSearchPage() {
                       </caption>
                       <thead>
                         <tr className="bg-muted">
-                          <SortHeader label="Callsign" sortKeyName="callsign" />
+                          <SortHeader label="Amateur Callsign" sortKeyName="amateur" />
+                          <SortHeader label="GMRS Callsign" sortKeyName="gmrs" />
                           <SortHeader label="Name" sortKeyName="name" />
-                          <SortHeader label="Service" sortKeyName="service" />
                           <SortHeader label="Class" sortKeyName="class" />
                           <th scope="col" className="px-3 py-2 text-left font-medium text-foreground">
                             Street
@@ -843,40 +949,28 @@ export function AdvancedSearchPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {pageResults.map((r) => {
-                          const amateur = isAmateurRadio(r.service)
-                          const inactive = r.status && r.status !== "A"
+                        {pageResults.map((row) => {
+                          const r = row.primary
                           return (
-                            <tr key={r.usid} className="border-t border-border align-top">
-                              <th scope="row" className="px-3 py-2 text-left font-semibold text-foreground whitespace-nowrap">
-                                {r.callsign}
-                                {inactive && (
-                                  <span className="ml-1.5 rounded bg-destructive/15 px-1.5 py-0.5 text-xs font-normal text-destructive">
-                                    {STATUS_LABELS[r.status] || r.status}
-                                  </span>
-                                )}
-                              </th>
-                              <td className="px-3 py-2 text-foreground whitespace-nowrap">{formatName(r.name)}</td>
+                            <tr key={row.key} className="border-t border-border align-top">
                               <td className="px-3 py-2">
-                                <span
-                                  className={`inline-block rounded-full border px-2 py-0.5 text-xs font-medium ${
-                                    amateur
-                                      ? "border-primary/30 bg-primary/15 text-primary"
-                                      : "border-accent/30 bg-accent/15 text-accent"
-                                  }`}
-                                >
-                                  {amateur ? "Amateur" : "GMRS"}
-                                </span>
+                                <CallsignCell records={row.amateur} />
                               </td>
+                              <td className="px-3 py-2">
+                                <CallsignCell records={row.gmrs} />
+                              </td>
+                              <th scope="row" className="px-3 py-2 text-left font-normal text-foreground whitespace-nowrap">
+                                {formatName(r.name)}
+                              </th>
                               <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
-                                {amateur ? formatLicenseClass(r.class) || "—" : "—"}
+                                {row.amateur[0] ? formatLicenseClass(row.amateur[0].class) || "—" : "—"}
                               </td>
                               <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
                                 {r.street ? formatStreet(r.street) : "—"}
                               </td>
                               <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
                                 {r.city || "—"}
-                                {outsideIds.has(r.usid) && (
+                                {row.outside && (
                                   <span className="ml-1.5 rounded bg-muted px-1.5 py-0.5 text-xs text-foreground">
                                     Outside county
                                   </span>
