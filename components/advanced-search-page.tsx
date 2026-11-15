@@ -9,11 +9,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
+  Filter,
   Loader2,
   MapPinned,
   Search,
   X,
 } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -263,6 +265,7 @@ export function AdvancedSearchPage() {
     setNotFound([])
     setFailed([])
     setTruncated([])
+    setServiceFilter("all")
     setPage(1)
     setLastSearchLabel(label)
     setProgress({ done: 0, total: values.length })
@@ -1087,7 +1090,16 @@ export function AdvancedSearchPage() {
                           setPage(1)
                         }}
                       >
-                        <SelectTrigger className="flex-1 sm:w-44" aria-label="Filter by service">
+                        <SelectTrigger
+                          aria-label="Filter by service"
+                          className={cn(
+                            "flex-1 gap-2 border-primary/60 font-medium sm:w-48",
+                            serviceFilter === "all"
+                              ? "bg-primary/10 text-foreground hover:bg-primary/20 dark:bg-primary/10 dark:hover:bg-primary/20 [&_svg]:!text-primary"
+                              : "border-primary bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary dark:hover:bg-primary/90 [&_svg]:!text-primary-foreground",
+                          )}
+                        >
+                          <Filter className="size-4 shrink-0" aria-hidden="true" />
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
