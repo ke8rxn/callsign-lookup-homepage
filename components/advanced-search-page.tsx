@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useMemo, useRef, useState } from "react"
+import useSWR from "swr"
 import {
   ArrowDown,
   ArrowUp,
@@ -28,12 +29,32 @@ import {
   isAmateurRadio,
 } from "@/lib/license-format"
 import { US_STATES } from "@/lib/us-states"
+
+const fetchJson = (url: string) => fetch(url).then((res) => res.json())
+
+const DMR_BATCH_SIZE = 50
+const DMR_PARALLEL_BATCHES = 3
+
+async function fetchAllDmrIds(callsigns: string[]): Promise<Record<string, string>> {
+  const batches: string[][] = []
+  for (let i = 0; i < callsigns.length; i += DMR_BATCH_SIZE) batches.push(callsigns.slice(i, i + DMR_BATCH_SIZE))
+  const merged: Record<string, string> = {}
+  for (let i = 0; i < batches.length; i += DMR_PARALLEL_BATCHES) {
+    const responses = await Promise.all(
+      batches.slice(i, i + DMR_PARALLEL_BATCHES).map((batch) =>
+        fetchJson(`/api/dmr-lookup/batch?callsigns=${batch.join(",")}`).catch(() => null),
+      ),
+    )
+    for (const res of responses) Object.assign(merged, res?.dmrIds ?? {})
+  }
+  return merged
+}
 import { type CountyMatcher, isInSelectedCounties } from "@/lib/county-match"
 
-type SearchType = "callsign" | "frn" | "name" | "zipcode"
+type SearchType = "callsign" | "name" | "zipcode" | "dmr" | "frn"
 type ZipMode = "manual" | "county"
 type SortKey = "amateur" | "gmrs" | "name" | "class" | "city" | "state" | "zip" | "frn"
-type ServiceFilter = "all" | "amateur" | "gmrs"
+type ServiceFilter = "all" | "both" | "amateur" | "gmrs" | "dmr"
 
 interface LicenseeRow {
   key: string
@@ -70,15 +91,6 @@ const SEARCH_TYPES: Record<SearchType, SearchTypeConfig> = {
     validate: (v) => /^[A-Z0-9]{3,7}$/i.test(v),
     invalidMessage: "Callsigns must be 3-7 letters and numbers.",
   },
-  frn: {
-    label: "FRN",
-    placeholder: "0036850956",
-    hint: "Enter FCC Registration Numbers, separated by commas, spaces, or new lines. Up to 25 at a time.",
-    maxQueries: 25,
-    split: (input) => input.split(/[,;\s]+/),
-    validate: (v) => /^\d{1,10}$/.test(v),
-    invalidMessage: "FRNs must be up to 10 digits.",
-  },
   name: {
     label: "Name",
     placeholder: "Smith, John\nDoe, Jane",
@@ -97,9 +109,34 @@ const SEARCH_TYPES: Record<SearchType, SearchTypeConfig> = {
     validate: (v) => /^\d{5}$/.test(v),
     invalidMessage: "ZIP codes must be 5 digits.",
   },
+  dmr: {
+    label: "DMR ID",
+    placeholder: "3180116, 3122796",
+    hint: "Enter RadioID DMR IDs (6-7 digits), separated by commas, spaces, or new lines. Up to 25 at a time.",
+    maxQueries: 25,
+    split: (input) => input.split(/[,;\s]+/),
+    validate: (v) => /^\d{6,7}$/.test(v),
+    invalidMessage: "DMR IDs must be 6 or 7 digits.",
+  },
+  frn: {
+    label: "FRN",
+    placeholder: "0036850956",
+    hint: "Enter FCC Registration Numbers, separated by commas, spaces, or new lines. Up to 25 at a time.",
+    maxQueries: 25,
+    split: (input) => input.split(/[,;\s]+/),
+    validate: (v) => /^\d{1,10}$/.test(v),
+    invalidMessage: "FRNs must be up to 10 digits.",
+  },
 }
 
 const COUNTY_ZIP_LIMIT = 300
+const MAX_LISTED_COUNTIES = 5
+
+function joinWithAnd(items: string[]) {
+  if (items.length <= 1) return items.join("")
+  if (items.length === 2) return `${items[0]} and ${items[1]}`
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`
+}
 const CONCURRENCY = 6
 const PAGE_SIZE = 50
 
@@ -187,7 +224,12 @@ export function AdvancedSearchPage() {
   const [generating, setGenerating] = useState(false)
   const [pendingZips, setPendingZips] = useState<string[] | null>(null)
   const [pendingMatch, setPendingMatch] = useState<CountyMatcher | null>(null)
-  const [countyMatch, setCountyMatch] = useState<{ matcher: CountyMatcher; label: string } | null>(null)
+  const [countyMatch, setCountyMatch] = useState<{
+    matcher: CountyMatcher
+    label: string
+    place: string
+    zipCount: number
+  } | null>(null)
   const [showOutside, setShowOutside] = useState(false)
   const [pickerCollapsed, setPickerCollapsed] = useState(false)
 
@@ -287,7 +329,7 @@ export function AdvancedSearchPage() {
         ),
       )
       if (values.length === 0) {
-        setInputError(`Enter at least one ${config.label.toLowerCase()}.`)
+        setInputError(`Enter at least one ${/[A-Z]{2}/.test(config.label) ? config.label : config.label.toLowerCase()}.`)
         return
       }
       if (values.length > config.maxQueries) {
@@ -301,7 +343,12 @@ export function AdvancedSearchPage() {
       }
       setInputError(null)
       setCountyMatch(null)
-      const summaryNoun = searchType === "zipcode" ? "ZIP code" : config.label.toLowerCase()
+      const summaryNoun =
+      searchType === "zipcode"
+        ? "ZIP code"
+        : /[A-Z]{2}/.test(config.label)
+          ? config.label
+          : config.label.toLowerCase()
     runQueries(searchType, values, `${values.length} ${summaryNoun}${values.length === 1 ? "" : searchType === "zipcode" ? "s" : " queries"}`)
     },
     [config, input, runQueries, searchType],
@@ -339,8 +386,11 @@ export function AdvancedSearchPage() {
 
   const visibleCounties = useMemo(() => {
     const q = countyFilter.trim().toLowerCase()
-    return q ? counties.filter((c) => c.name.toLowerCase().includes(q)) : counties
-  }, [counties, countyFilter])
+    if (!q) return counties
+    const selected = counties.filter((c) => selectedCounties.has(c.fips))
+    const matches = counties.filter((c) => !selectedCounties.has(c.fips) && c.name.toLowerCase().includes(q))
+    return [...selected, ...matches]
+  }, [counties, countyFilter, selectedCounties])
 
   const selectedCountyNames = useMemo(
     () => counties.filter((c) => selectedCounties.has(c.fips)).map((c) => c.name),
@@ -370,8 +420,17 @@ export function AdvancedSearchPage() {
     const stateName = US_STATES.find((s) => s.abbr === stateAbbr)?.name ?? stateAbbr
     const countyLabel =
       selectedCountyNames.length <= 3 ? selectedCountyNames.join(", ") : `${selectedCountyNames.length} counties`
+    const sortedCountyNames = [...selectedCountyNames].sort((a, b) => a.localeCompare(b))
+    const countyList =
+      sortedCountyNames.length > MAX_LISTED_COUNTIES
+        ? `${sortedCountyNames.length} counties`
+        : joinWithAnd(sortedCountyNames)
     setPendingZips(null)
-    setCountyMatch(pendingMatch ? { matcher: pendingMatch, label: countyLabel } : null)
+    setCountyMatch(
+      pendingMatch
+        ? { matcher: pendingMatch, label: countyLabel, place: `${countyList}, ${stateName}`, zipCount: zips.length }
+        : null,
+    )
     setShowOutside(false)
     setPickerCollapsed(true)
     runQueries("zipcode", zips, `${zips.length} ZIP codes in ${countyLabel}, ${stateName}`)
@@ -389,12 +448,32 @@ export function AdvancedSearchPage() {
   const rows = useMemo(() => groupLicensees(results, outsideIds), [results, outsideIds])
   const outsideRowCount = useMemo(() => rows.filter((r) => r.outside).length, [rows])
 
+  const allAmateurCallsigns = useMemo(
+    () =>
+      Array.from(
+        new Set(rows.map((row) => row.amateur[0]?.callsign?.toUpperCase()).filter(Boolean) as string[]),
+      ).sort(),
+    [rows],
+  )
+  const { data: allDmrIds } = useSWR(
+    allAmateurCallsigns.length ? ["dmr-all", allAmateurCallsigns.join(",")] : null,
+    ([, list]: [string, string]) => fetchAllDmrIds(list.split(",")),
+    { revalidateOnFocus: false },
+  )
+
   const filteredResults = useMemo(() => {
     const q = filterText.trim().toLowerCase()
     const filtered = rows.filter((row) => {
       if (!showOutside && row.outside) return false
-      if (serviceFilter === "amateur" && row.amateur.length === 0) return false
-      if (serviceFilter === "gmrs" && row.gmrs.length === 0) return false
+      const hasAmateur = row.amateur.length > 0
+      const hasGmrs = row.gmrs.length > 0
+      if (serviceFilter === "both" && !(hasAmateur && hasGmrs)) return false
+      if (serviceFilter === "amateur" && !(hasAmateur && !hasGmrs)) return false
+      if (serviceFilter === "gmrs" && !(hasGmrs && !hasAmateur)) return false
+      if (serviceFilter === "dmr") {
+        const call = row.amateur[0]?.callsign?.toUpperCase()
+        if (!call || !allDmrIds?.[call]) return false
+      }
       if (!q) return true
       const p = row.primary
       return [...row.records.map((r) => r.callsign), p.name, formatName(p.name), p.city, p.state, p.zip, p.frn]
@@ -407,11 +486,39 @@ export function AdvancedSearchPage() {
       const cmp = av.localeCompare(bv, undefined, { numeric: true })
       return sortDir === "asc" ? cmp : -cmp
     })
-  }, [rows, filterText, serviceFilter, sortKey, sortDir, showOutside])
+  }, [rows, filterText, serviceFilter, sortKey, sortDir, showOutside, allDmrIds])
+
+  const licenseBreakdown = useMemo(() => {
+    let amateur = 0
+    let gmrs = 0
+    let both = 0
+    for (const row of filteredResults) {
+      amateur += row.amateur.length
+      gmrs += row.gmrs.length
+      if (row.amateur.length > 0 && row.gmrs.length > 0) both++
+    }
+    return { amateur, gmrs, both }
+  }, [filteredResults])
 
   const pageCount = Math.max(1, Math.ceil(filteredResults.length / PAGE_SIZE))
   const currentPage = Math.min(page, pageCount)
   const pageResults = filteredResults.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+  const pageAmateurCallsigns = Array.from(
+    new Set(pageResults.map((row) => row.amateur[0]?.callsign?.toUpperCase()).filter(Boolean) as string[]),
+  ).sort()
+  const { data: dmrData, isLoading: dmrLoading } = useSWR<{ dmrIds: Record<string, string> }>(
+    pageAmateurCallsigns.length ? `/api/dmr-lookup/batch?callsigns=${pageAmateurCallsigns.join(",")}` : null,
+    fetchJson,
+    { revalidateOnFocus: false, keepPreviousData: false },
+  )
+  const dmrIds = useMemo(() => ({ ...(allDmrIds ?? {}), ...(dmrData?.dmrIds ?? {}) }), [allDmrIds, dmrData])
+  const dmrUserCount = useMemo(() => {
+    if (!allDmrIds) return null
+    return filteredResults.filter((row) => {
+      const call = row.amateur[0]?.callsign?.toUpperCase()
+      return call ? Boolean(allDmrIds[call]) : false
+    }).length
+  }, [allDmrIds, filteredResults])
 
   const toggleSort = useCallback(
     (key: SortKey) => {
@@ -426,8 +533,9 @@ export function AdvancedSearchPage() {
     [sortKey],
   )
 
-  const exportToCSV = useCallback(() => {
+  const exportToCSV = useCallback(async () => {
     if (filteredResults.length === 0) return
+    const exportDmrIds = allDmrIds ?? (allAmateurCallsigns.length ? await fetchAllDmrIds(allAmateurCallsigns) : {})
     const headers = [
       "Amateur Callsign",
       "GMRS Callsign",
@@ -437,6 +545,7 @@ export function AdvancedSearchPage() {
       "City",
       "State",
       "ZIP",
+      "DMR ID",
       "FRN",
     ]
     const escapeCSV = (value: string) =>
@@ -452,6 +561,7 @@ export function AdvancedSearchPage() {
         p.city || "",
         p.state || "",
         p.zip || "",
+        exportDmrIds[row.amateur[0]?.callsign?.toUpperCase() ?? ""] || "",
         p.frn || "",
       ]
     })
@@ -465,14 +575,14 @@ export function AdvancedSearchPage() {
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
-  }, [filteredResults])
+  }, [filteredResults, allDmrIds, allAmateurCallsigns])
 
   const SortHeader = ({ label, sortKeyName }: { label: string; sortKeyName: SortKey }) => {
     const active = sortKey === sortKeyName
     return (
       <th
         scope="col"
-        className="px-3 py-2 text-left font-medium text-foreground whitespace-nowrap"
+        className="px-3 py-2 text-left align-bottom font-medium text-foreground whitespace-nowrap lg:whitespace-normal lg:px-2"
         aria-sort={active ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
       >
         <button
@@ -506,7 +616,7 @@ export function AdvancedSearchPage() {
       <div className="text-center mb-6 md:mb-8">
         <h2 className="text-2xl md:text-5xl font-bold text-foreground mb-2 md:mb-4 text-balance">Advanced Search</h2>
         <p className="text-muted-foreground text-sm md:text-xl max-w-2xl mx-auto text-pretty">
-          Look up FCC amateur and GMRS licenses by callsign, FRN, name, or location (ZIP code or state and county), one at a time or in bulk.
+          Look up FCC amateur and GMRS licenses by callsign, name, location (ZIP code or state and county), DMR ID, or FRN, one at a time or in bulk.
         </p>
         <p className="mt-3 text-sm text-muted-foreground max-w-2xl mx-auto text-left text-pretty">
           Only active FCC amateur radio and GMRS licenses are searched. Expired, cancelled, and terminated licenses are not included.
@@ -530,7 +640,7 @@ export function AdvancedSearchPage() {
               setPendingZips(null)
             }}
             aria-labelledby="search-type-label"
-            className="grid w-full grid-cols-2 sm:grid-cols-4"
+            className="grid w-full grid-cols-3 sm:grid-cols-5"
           >
             {(Object.keys(SEARCH_TYPES) as SearchType[]).map((type) => (
               <ToggleGroupItem
@@ -591,7 +701,7 @@ export function AdvancedSearchPage() {
               }}
               placeholder={config.placeholder}
               rows={3}
-              aria-describedby="advanced-search-hint"
+              aria-describedby={inputError ? "advanced-search-hint advanced-search-error" : "advanced-search-hint"}
               aria-invalid={inputError ? true : undefined}
               className="font-mono"
             />
@@ -687,6 +797,11 @@ export function AdvancedSearchPage() {
   placeholder="Filter counties"
   className="h-10 border-muted-foreground/50 bg-background pl-9 text-base text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-primary/40 dark:bg-background"
   />
+  <p className="sr-only" role="status">
+    {countyFilter
+      ? `${visibleCounties.length} ${visibleCounties.length === 1 ? "county" : "counties"} shown, including selected counties.`
+      : ""}
+  </p>
   </div>
                   <div className="flex gap-2">
                     <Button
@@ -799,13 +914,20 @@ export function AdvancedSearchPage() {
         )}
 
         {inputError && (
-          <p className="text-sm text-destructive" role="alert">
+          <p id="advanced-search-error" className="text-sm text-destructive" role="alert">
             {inputError}
           </p>
         )}
       </div>
 
-      <div className="max-w-6xl mx-auto mt-6" aria-live="polite" aria-busy={isSearching}>
+      <div className="max-w-6xl mx-auto mt-6">
+        <p className="sr-only" role="status">
+          {!isSearching && hasSearched
+            ? results.length === 0
+              ? `No licenses found for ${lastSearchLabel}.`
+              : `Showing ${filteredResults.length.toLocaleString()} of ${rows.length.toLocaleString()} licensees.`
+            : ""}
+        </p>
         {isSearching && (
           <div className="mx-auto flex max-w-md flex-col items-center gap-3 py-8" role="status">
             <p className="flex items-center gap-2 text-muted-foreground">
@@ -853,12 +975,42 @@ export function AdvancedSearchPage() {
               <p className="py-8 text-center text-muted-foreground">No licenses found for {lastSearchLabel}.</p>
             ) : (
               <>
-                <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    <span className="sr-only">Search results: </span>
-                    Showing {filteredResults.length.toLocaleString()} of {rows.length.toLocaleString()} licensee
-                    {rows.length === 1 ? "" : "s"} ({results.length.toLocaleString()} license
-                    {results.length === 1 ? "" : "s"}) from {lastSearchLabel}.
+                <p className="flex flex-wrap items-baseline gap-x-2 text-pretty text-foreground">
+                  <span className="sr-only">Search results: </span>
+                  <span className="text-lg font-medium">Showing</span>
+                  <span className="text-3xl font-bold tabular-nums text-primary">
+                    {filteredResults.length.toLocaleString()}
+                  </span>
+                  <span className="text-lg font-medium">
+                    {countyMatch
+                      ? `licensee${filteredResults.length === 1 ? "" : "s"} from ${countyMatch.place}`
+                      : `of ${rows.length.toLocaleString()} licensee${rows.length === 1 ? "" : "s"}`}
+                  </span>
+                  <span className="basis-full text-base text-foreground">
+                    <span className="font-semibold tabular-nums">{licenseBreakdown.amateur.toLocaleString()}</span>{" "}
+                    amateur license{licenseBreakdown.amateur === 1 ? "" : "s"},{" "}
+                    <span className="font-semibold tabular-nums">{licenseBreakdown.gmrs.toLocaleString()}</span>{" "}
+                      GMRS license{licenseBreakdown.gmrs === 1 ? "" : "s"},{" "}
+                      <span className="font-semibold tabular-nums">{licenseBreakdown.both.toLocaleString()}</span>{" "}
+                      licensee{licenseBreakdown.both === 1 ? "" : "s"} with both, and{" "}
+                      {dmrUserCount === null ? (
+                        <span className="inline-flex items-center gap-1 align-middle text-muted-foreground">
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                          <span className="sr-only">Counting</span>
+                        </span>
+                      ) : (
+                        <span className="font-semibold tabular-nums">{dmrUserCount.toLocaleString()}</span>
+                      )}{" "}
+                      DMR user{dmrUserCount === 1 ? "" : "s"}.
+                  </span>
+                </p>
+                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <p className="min-w-0 flex-1 text-sm text-muted-foreground">
+                    {results.length.toLocaleString()} license{results.length === 1 ? "" : "s"} from{" "}
+                    {countyMatch
+                      ? `${countyMatch.zipCount} ZIP code${countyMatch.zipCount === 1 ? "" : "s"}`
+                      : lastSearchLabel}
+                    .
                   </p>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <div>
@@ -884,13 +1036,17 @@ export function AdvancedSearchPage() {
                           setPage(1)
                         }}
                       >
-                        <SelectTrigger className="flex-1 sm:w-36" aria-label="Filter by service">
+                        <SelectTrigger className="flex-1 sm:w-44" aria-label="Filter by service">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">All services</SelectItem>
-                          <SelectItem value="amateur">Amateur</SelectItem>
-                          <SelectItem value="gmrs">GMRS</SelectItem>
+                          <SelectItem value="all">All</SelectItem>
+                          <SelectItem value="both">Amateur + GMRS</SelectItem>
+                          <SelectItem value="amateur">Amateur Only</SelectItem>
+                          <SelectItem value="gmrs">GMRS Only</SelectItem>
+                          <SelectItem value="dmr" disabled={!allDmrIds}>
+                            DMR Only
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                       <Button
@@ -949,46 +1105,63 @@ export function AdvancedSearchPage() {
                           <SortHeader label="GMRS Callsign" sortKeyName="gmrs" />
                           <SortHeader label="Name" sortKeyName="name" />
                           <SortHeader label="Class" sortKeyName="class" />
-                          <th scope="col" className="px-3 py-2 text-left font-medium text-foreground">
+                          <th scope="col" className="px-3 py-2 text-left align-bottom font-medium text-foreground lg:px-2">
                             Street
                           </th>
                           <SortHeader label="City" sortKeyName="city" />
                           <SortHeader label="State" sortKeyName="state" />
                           <SortHeader label="ZIP" sortKeyName="zip" />
+                          <th scope="col" className="px-3 py-2 text-left align-bottom font-medium text-foreground whitespace-nowrap lg:px-2">
+                            DMR ID
+                          </th>
                           <SortHeader label="FRN" sortKeyName="frn" />
                         </tr>
                       </thead>
                       <tbody>
                         {pageResults.map((row) => {
                           const r = row.primary
+                          const amateurCall = row.amateur[0]?.callsign?.toUpperCase()
+                          const dmrId = amateurCall ? dmrIds[amateurCall] : undefined
                           return (
                             <tr key={row.key} className="border-t border-border align-top">
-                              <td className="px-3 py-2">
+                              <td className="px-3 py-2 lg:px-2">
                                 <CallsignCell records={row.amateur} />
                               </td>
-                              <td className="px-3 py-2">
+                              <td className="px-3 py-2 lg:px-2">
                                 <CallsignCell records={row.gmrs} />
                               </td>
-                              <th scope="row" className="px-3 py-2 text-left font-normal text-foreground whitespace-nowrap">
+                              <th scope="row" className="px-3 py-2 text-left font-normal text-foreground whitespace-nowrap lg:whitespace-normal lg:px-2">
                                 {formatName(r.name)}
                               </th>
-                              <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
+                              <td className="px-3 py-2 text-muted-foreground whitespace-nowrap lg:px-2">
                                 {row.amateur[0] ? formatLicenseClass(row.amateur[0].class) || "—" : "—"}
                               </td>
-                              <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
+                              <td className="px-3 py-2 text-muted-foreground whitespace-nowrap lg:whitespace-normal lg:px-2">
                                 {r.street ? formatStreet(r.street) : "—"}
                               </td>
-                              <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
+                              <td className="px-3 py-2 text-muted-foreground whitespace-nowrap lg:whitespace-normal lg:px-2">
                                 {r.city || "—"}
                                 {row.outside && (
-                                  <span className="ml-1.5 rounded bg-muted px-1.5 py-0.5 text-xs text-foreground">
+                                  <span className="ml-1.5 inline-block rounded bg-muted px-1.5 py-0.5 text-xs text-foreground">
                                     Outside county
                                   </span>
                                 )}
                               </td>
-                              <td className="px-3 py-2 text-muted-foreground">{r.state || "—"}</td>
-                              <td className="px-3 py-2 text-muted-foreground">{r.zip || "—"}</td>
-                              <td className="px-3 py-2 font-mono text-xs text-muted-foreground">{r.frn || "—"}</td>
+                              <td className="px-3 py-2 text-muted-foreground lg:px-2">{r.state || "—"}</td>
+                              <td className="px-3 py-2 text-muted-foreground lg:px-2">{r.zip || "—"}</td>
+                              <td className="px-3 py-2 font-mono text-xs text-muted-foreground lg:px-2">
+                                {dmrId ? (
+                                  dmrId
+                                ) : amateurCall && dmrLoading ? (
+                                  <>
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                                    <span className="sr-only">Loading DMR ID</span>
+                                  </>
+                                ) : (
+                                  "—"
+                                )}
+                              </td>
+                              <td className="px-3 py-2 font-mono text-xs text-muted-foreground lg:px-2">{r.frn || "—"}</td>
                             </tr>
                           )
                         })}
@@ -1009,9 +1182,17 @@ export function AdvancedSearchPage() {
                       <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                       Previous
                     </Button>
-                    <span className="text-sm text-muted-foreground" aria-current="page">
-                      Page {currentPage} of {pageCount}
-                    </span>
+                    <p className="flex flex-col items-center text-center" aria-current="page">
+                      <span className="text-base font-semibold text-foreground tabular-nums">
+                        {`Showing ${((currentPage - 1) * PAGE_SIZE + 1).toLocaleString()}–${Math.min(
+                          currentPage * PAGE_SIZE,
+                          filteredResults.length,
+                        ).toLocaleString()} of ${filteredResults.length.toLocaleString()}`}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        Page {currentPage} of {pageCount}
+                      </span>
+                    </p>
                     <Button
                       type="button"
                       size="sm"
