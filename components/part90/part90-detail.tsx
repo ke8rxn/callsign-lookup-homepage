@@ -23,7 +23,7 @@ interface Props {
   onBack: () => void
 }
 
-const FREQ_COLUMNS: { key: keyof DetailFrequency; label: string; render: (f: DetailFrequency) => string; numeric?: boolean }[] = [
+export const FREQ_COLUMNS: { key: keyof DetailFrequency; label: string; render: (f: DetailFrequency) => string; numeric?: boolean }[] = [
   { key: "frequency_assigned", label: "Frequency (MHz)", render: (f) => formatFrequency(f.frequency_assigned) },
   { key: "station_class", label: "Station class", render: (f) => f.station_class ?? "" },
   { key: "power_output", label: "Power output", render: (f) => formatWatts(f.power_output), numeric: true },
@@ -32,10 +32,20 @@ const FREQ_COLUMNS: { key: keyof DetailFrequency; label: string; render: (f: Det
   { key: "date_first_used", label: "First used", render: (f) => f.date_first_used ?? "" },
 ]
 
-function LocationCard({ location }: { location: DetailLocation }) {
+export function LocationCard({
+  location,
+  idPrefix = "p90-loc",
+  headingLevel = 4,
+}: {
+  location: DetailLocation
+  idPrefix?: string
+  headingLevel?: 3 | 4
+}) {
   const n = location.location_number
   const type = locationTypeLabel(location.location_type)
-  const headingId = `p90-loc-${n}`
+  const headingId = `${idPrefix}-${n}`
+  const Heading = headingLevel === 3 ? "h3" : "h4"
+  const SubHeading = headingLevel === 3 ? "h4" : "h5"
   const columns = FREQ_COLUMNS.filter((c) => location.frequencies.some((f) => hasValue(f[c.key])))
   const hasCoords = location.latitude != null && location.longitude != null
 
@@ -74,10 +84,10 @@ function LocationCard({ location }: { location: DetailLocation }) {
   return (
     <li>
       <article aria-labelledby={headingId} className="flex flex-col gap-3 rounded-lg border border-border bg-card p-3 md:p-4">
-        <h4 id={headingId} className="text-base font-semibold text-foreground">
+        <Heading id={headingId} className="text-base font-semibold text-foreground">
           Location {n}
           {type && <span className="font-normal text-muted-foreground"> · {type}</span>}
-        </h4>
+        </Heading>
 
         {fields.length > 0 && (
           <dl className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
@@ -91,9 +101,9 @@ function LocationCard({ location }: { location: DetailLocation }) {
 
         {location.frequencies.length > 0 && (
           <div className="flex flex-col gap-2">
-            <h5 className="text-sm font-semibold text-foreground">
+            <SubHeading className="text-sm font-semibold text-foreground">
               Frequencies at location {n} ({location.frequencies.length})
-            </h5>
+            </SubHeading>
             <div className="hidden overflow-x-auto rounded-md border border-border sm:block">
               <table className="w-full text-sm">
                 <caption className="sr-only">Frequencies licensed at location {n}</caption>
