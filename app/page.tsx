@@ -271,10 +271,10 @@ export default function CallsignLookup() {
 
       {/* Header */}
       <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-3 py-2 md:px-4 md:py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 md:gap-4">
+        <div className="container mx-auto px-3 py-2 md:px-4 md:py-4 flex items-center justify-between gap-1">
+          <div className="flex min-w-0 items-center gap-2 md:gap-4">
             <div className="flex items-center gap-2 md:gap-3">
-              <div className="h-8 w-8 md:h-10 md:w-10 rounded-lg bg-primary flex items-center justify-center" aria-hidden="true">
+              <div className="hidden min-[360px]:flex h-8 w-8 md:h-10 md:w-10 rounded-lg bg-primary items-center justify-center" aria-hidden="true">
                 <Radio className="h-4 w-4 md:h-5 md:w-5 text-primary-foreground" />
               </div>
               <h1 className="sr-only sm:not-sr-only text-lg md:text-xl font-bold text-foreground">KE8RXN</h1>
@@ -302,7 +302,7 @@ export default function CallsignLookup() {
                 aria-selected={view === "callsign"}
                 tabIndex={view === "callsign" ? 0 : -1}
                 onClick={() => setView("callsign")}
-                className={`rounded-md px-2.5 py-1 text-sm font-medium transition-colors ${
+                className={`rounded-md px-2 sm:px-2.5 py-1 text-sm font-medium transition-colors ${
                   view === "callsign"
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -317,7 +317,7 @@ export default function CallsignLookup() {
                 aria-selected={view === "advanced"}
                 tabIndex={view === "advanced" ? 0 : -1}
                 onClick={() => setView("advanced")}
-                className={`rounded-md px-2.5 py-1 text-sm font-medium transition-colors ${
+                className={`rounded-md px-2 sm:px-2.5 py-1 text-sm font-medium transition-colors ${
                   view === "advanced"
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -332,7 +332,7 @@ export default function CallsignLookup() {
                 aria-selected={view === "repeater"}
                 tabIndex={view === "repeater" ? 0 : -1}
                 onClick={() => setView("repeater")}
-                className={`rounded-md px-2.5 py-1 text-sm font-medium transition-colors ${
+                className={`rounded-md px-2 sm:px-2.5 py-1 text-sm font-medium transition-colors ${
                   view === "repeater"
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -342,7 +342,7 @@ export default function CallsignLookup() {
               </button>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
             {/* Mobile Menu */}
             <div className="relative md:hidden">
               <Button
@@ -950,10 +950,12 @@ export default function CallsignLookup() {
                 <p className="text-xl md:text-4xl font-bold text-primary" aria-label="Over 1 million US callsigns">1M+</p>
                 <p className="text-sm text-muted-foreground mt-0.5 md:mt-1">US Callsigns</p>
               </div>
-              <a href="https://www.fcc.gov/wireless/universal-licensing-system" target="_blank" rel="noopener noreferrer" role="listitem" className="hover:opacity-80 transition-opacity" aria-label="FCC Database (opens in new window)">
-                <p className="text-xl md:text-4xl font-bold text-primary" aria-hidden="true">FCC</p>
-                <p className="text-sm text-muted-foreground mt-0.5 md:mt-1" aria-hidden="true">Database</p>
-              </a>
+<div role="listitem">
+  <a href="https://www.fcc.gov/wireless/universal-licensing-system" target="_blank" rel="noopener noreferrer" className="block rounded-md hover:opacity-80 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card" aria-label="FCC Database (opens in new window)">
+  <p className="text-xl md:text-4xl font-bold text-primary" aria-hidden="true">FCC</p>
+  <p className="text-sm text-muted-foreground mt-0.5 md:mt-1" aria-hidden="true">Database</p>
+  </a>
+  </div>
               <div role="listitem">
                 <p className="text-xl md:text-4xl font-bold text-primary">Live</p>
                 <p className="text-sm text-muted-foreground mt-0.5 md:mt-1">Lookup</p>
