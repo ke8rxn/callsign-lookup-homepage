@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useMemo, useRef, useState } from "react"
+import useSWR from "swr"
 import {
   ArrowDown,
   ArrowUp,
@@ -28,6 +29,8 @@ import {
   isAmateurRadio,
 } from "@/lib/license-format"
 import { US_STATES } from "@/lib/us-states"
+
+const fetchJson = (url: string) => fetch(url).then((res) => res.json())
 import { type CountyMatcher, isInSelectedCounties } from "@/lib/county-match"
 
 type SearchType = "callsign" | "frn" | "name" | "zipcode"
@@ -445,6 +448,15 @@ export function AdvancedSearchPage() {
   const pageCount = Math.max(1, Math.ceil(filteredResults.length / PAGE_SIZE))
   const currentPage = Math.min(page, pageCount)
   const pageResults = filteredResults.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+  const pageAmateurCallsigns = Array.from(
+    new Set(pageResults.map((row) => row.amateur[0]?.callsign?.toUpperCase()).filter(Boolean) as string[]),
+  ).sort()
+  const { data: dmrData, isLoading: dmrLoading } = useSWR<{ dmrIds: Record<string, string> }>(
+    pageAmateurCallsigns.length ? `/api/dmr-lookup/batch?callsigns=${pageAmateurCallsigns.join(",")}` : null,
+    fetchJson,
+    { revalidateOnFocus: false, keepPreviousData: false },
+  )
+  const dmrIds = dmrData?.dmrIds ?? {}
 
   const toggleSort = useCallback(
     (key: SortKey) => {
@@ -505,7 +517,7 @@ export function AdvancedSearchPage() {
     return (
       <th
         scope="col"
-        className="px-3 py-2 text-left font-medium text-foreground whitespace-nowrap"
+        className="px-3 py-2 text-left align-bottom font-medium text-foreground whitespace-nowrap lg:whitespace-normal lg:px-2"
         aria-sort={active ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
       >
         <button
@@ -1003,46 +1015,63 @@ export function AdvancedSearchPage() {
                           <SortHeader label="GMRS Callsign" sortKeyName="gmrs" />
                           <SortHeader label="Name" sortKeyName="name" />
                           <SortHeader label="Class" sortKeyName="class" />
-                          <th scope="col" className="px-3 py-2 text-left font-medium text-foreground">
+                          <th scope="col" className="px-3 py-2 text-left align-bottom font-medium text-foreground lg:px-2">
                             Street
                           </th>
                           <SortHeader label="City" sortKeyName="city" />
                           <SortHeader label="State" sortKeyName="state" />
                           <SortHeader label="ZIP" sortKeyName="zip" />
+                          <th scope="col" className="px-3 py-2 text-left align-bottom font-medium text-foreground whitespace-nowrap lg:px-2">
+                            DMR ID
+                          </th>
                           <SortHeader label="FRN" sortKeyName="frn" />
                         </tr>
                       </thead>
                       <tbody>
                         {pageResults.map((row) => {
                           const r = row.primary
+                          const amateurCall = row.amateur[0]?.callsign?.toUpperCase()
+                          const dmrId = amateurCall ? dmrIds[amateurCall] : undefined
                           return (
                             <tr key={row.key} className="border-t border-border align-top">
-                              <td className="px-3 py-2">
+                              <td className="px-3 py-2 lg:px-2">
                                 <CallsignCell records={row.amateur} />
                               </td>
-                              <td className="px-3 py-2">
+                              <td className="px-3 py-2 lg:px-2">
                                 <CallsignCell records={row.gmrs} />
                               </td>
-                              <th scope="row" className="px-3 py-2 text-left font-normal text-foreground whitespace-nowrap">
+                              <th scope="row" className="px-3 py-2 text-left font-normal text-foreground whitespace-nowrap lg:whitespace-normal lg:px-2">
                                 {formatName(r.name)}
                               </th>
-                              <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
+                              <td className="px-3 py-2 text-muted-foreground whitespace-nowrap lg:px-2">
                                 {row.amateur[0] ? formatLicenseClass(row.amateur[0].class) || "—" : "—"}
                               </td>
-                              <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
+                              <td className="px-3 py-2 text-muted-foreground whitespace-nowrap lg:whitespace-normal lg:px-2">
                                 {r.street ? formatStreet(r.street) : "—"}
                               </td>
-                              <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">
+                              <td className="px-3 py-2 text-muted-foreground whitespace-nowrap lg:whitespace-normal lg:px-2">
                                 {r.city || "—"}
                                 {row.outside && (
-                                  <span className="ml-1.5 rounded bg-muted px-1.5 py-0.5 text-xs text-foreground">
+                                  <span className="ml-1.5 inline-block rounded bg-muted px-1.5 py-0.5 text-xs text-foreground">
                                     Outside county
                                   </span>
                                 )}
                               </td>
-                              <td className="px-3 py-2 text-muted-foreground">{r.state || "—"}</td>
-                              <td className="px-3 py-2 text-muted-foreground">{r.zip || "—"}</td>
-                              <td className="px-3 py-2 font-mono text-xs text-muted-foreground">{r.frn || "—"}</td>
+                              <td className="px-3 py-2 text-muted-foreground lg:px-2">{r.state || "—"}</td>
+                              <td className="px-3 py-2 text-muted-foreground lg:px-2">{r.zip || "—"}</td>
+                              <td className="px-3 py-2 font-mono text-xs text-muted-foreground lg:px-2">
+                                {dmrId ? (
+                                  dmrId
+                                ) : amateurCall && dmrLoading ? (
+                                  <>
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                                    <span className="sr-only">Loading DMR ID</span>
+                                  </>
+                                ) : (
+                                  "—"
+                                )}
+                              </td>
+                              <td className="px-3 py-2 font-mono text-xs text-muted-foreground lg:px-2">{r.frn || "—"}</td>
                             </tr>
                           )
                         })}
