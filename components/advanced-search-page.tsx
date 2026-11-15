@@ -508,7 +508,7 @@ export function AdvancedSearchPage() {
         <p className="text-muted-foreground text-sm md:text-xl max-w-2xl mx-auto text-pretty">
           Look up FCC amateur and GMRS licenses by callsign, FRN, name, or location (ZIP code or state and county), one at a time or in bulk.
         </p>
-        <p className="mt-3 text-xs md:text-sm text-muted-foreground max-w-2xl mx-auto text-pretty">
+        <p className="mt-3 text-sm text-muted-foreground max-w-2xl mx-auto text-pretty">
           Only active FCC amateur radio and GMRS licenses are searched. Expired, cancelled, and terminated licenses are not included.
         </p>
       </div>
@@ -595,7 +595,7 @@ export function AdvancedSearchPage() {
               aria-invalid={inputError ? true : undefined}
               className="font-mono"
             />
-            <p id="advanced-search-hint" className="text-xs text-muted-foreground leading-relaxed">
+            <p id="advanced-search-hint" className="text-sm text-muted-foreground leading-relaxed">
               {config.hint} Press Ctrl+Enter to search.
             </p>
             <div className="flex gap-2">
@@ -727,7 +727,7 @@ export function AdvancedSearchPage() {
                         />
                         <label htmlFor={id} className="flex-1 cursor-pointer text-sm text-foreground">
                           {c.name}{" "}
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-sm text-muted-foreground">
                             ({c.zipCount} ZIP{c.zipCount === 1 ? "" : "s"})
                           </span>
                         </label>
@@ -766,11 +766,11 @@ export function AdvancedSearchPage() {
                   </h3>
                   {pendingZips.length > 0 && (
                     <>
-                      <p className="max-h-24 overflow-y-auto font-mono text-xs text-muted-foreground leading-relaxed break-words">
+                      <p className="max-h-24 overflow-y-auto font-mono text-sm text-muted-foreground leading-relaxed break-words">
                         {pendingZips.join(", ")}
                       </p>
                       {zipsOverLimit && (
-                        <p className="text-xs text-destructive">
+                        <p className="text-sm text-destructive">
                           Only the first {COUNTY_ZIP_LIMIT} ZIP codes will be queried. Select fewer counties to search
                           the rest.
                         </p>

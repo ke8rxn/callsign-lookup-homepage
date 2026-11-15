@@ -400,7 +400,7 @@ export function RepeaterLookupPage() {
 
           <div className="flex items-center gap-2" role="presentation">
             <span className="h-px flex-1 bg-border" aria-hidden="true" />
-            <span className="text-xs text-muted-foreground">or</span>
+            <span className="text-sm text-muted-foreground">or</span>
             <span className="h-px flex-1 bg-border" aria-hidden="true" />
           </div>
 
@@ -457,7 +457,7 @@ export function RepeaterLookupPage() {
               </Button>
             </div>
           </div>
-          <p id="repeater-input-hint" className="text-xs text-muted-foreground">
+          <p id="repeater-input-hint" className="text-sm text-muted-foreground">
             Searches for repeaters within the selected radius. Falls back to approximate IP location if GPS is
             unavailable.
           </p>
@@ -472,7 +472,7 @@ export function RepeaterLookupPage() {
                 aria-label="Advanced result filters"
               >
                 <div>
-                  <label htmlFor="filter-callsign" className="mb-1 block text-xs font-medium text-muted-foreground">
+                  <label htmlFor="filter-callsign" className="mb-1 block text-sm font-medium text-muted-foreground">
                     Call sign
                   </label>
                   <Input
@@ -483,7 +483,7 @@ export function RepeaterLookupPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="filter-frequency" className="mb-1 block text-xs font-medium text-muted-foreground">
+                  <label htmlFor="filter-frequency" className="mb-1 block text-sm font-medium text-muted-foreground">
                     Frequency (MHz)
                   </label>
                   <Input
@@ -495,7 +495,7 @@ export function RepeaterLookupPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="filter-mode" className="mb-1 block text-xs font-medium text-muted-foreground">
+                  <label htmlFor="filter-mode" className="mb-1 block text-sm font-medium text-muted-foreground">
                     Mode
                   </label>
                   <Select value={filterMode} onValueChange={setFilterMode}>
@@ -592,7 +592,7 @@ export function RepeaterLookupPage() {
                               </span>
                             )}
                           </div>
-                          {r.city && <span className="text-xs text-muted-foreground">{r.city}</span>}
+                          {r.city && <span className="text-sm text-muted-foreground">{r.city}</span>}
                         </td>
                         <td className="whitespace-nowrap px-3 py-2 text-foreground">
                           {formatFrequency(r.frequency)}

@@ -57,7 +57,7 @@ export function ApiDocs() {
         <h4 id="api-endpoints-heading" className="text-sm font-medium text-foreground">
           KE8RXN endpoints
         </h4>
-        <p className="text-xs text-muted-foreground leading-relaxed">
+        <p className="text-sm text-muted-foreground leading-relaxed">
           Free, no key required. Send a GET request with the value appended to the endpoint. Responses are JSON with
           name, address, license class, and status for active FCC amateur and GMRS licenses.
         </p>
@@ -83,7 +83,7 @@ export function ApiDocs() {
                   )}
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {endpoint.description}{" "}
                 <span className="font-mono">
                   e.g. {endpoint.path}
@@ -114,7 +114,7 @@ export function ApiDocs() {
                 {source.name}
                 <span className="sr-only"> (opens in new window)</span>
               </a>
-              <span className="text-xs text-muted-foreground">{source.use}</span>
+              <span className="text-sm text-muted-foreground">{source.use}</span>
             </li>
           ))}
         </ul>
