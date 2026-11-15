@@ -174,7 +174,7 @@ function CallsignCell({ records }: { records: CallsignRecord[] }) {
 
 export function AdvancedSearchPage() {
   const [searchType, setSearchType] = useState<SearchType>("callsign")
-  const [zipMode, setZipMode] = useState<ZipMode>("manual")
+  const [zipMode, setZipMode] = useState<ZipMode>("county")
   const [input, setInput] = useState("")
   const [inputError, setInputError] = useState<string | null>(null)
 
@@ -563,11 +563,11 @@ export function AdvancedSearchPage() {
               aria-labelledby="zip-mode-label"
               className="grid w-full grid-cols-2"
             >
-              <ToggleGroupItem value="manual" className="data-[state=on]:bg-secondary data-[state=on]:text-secondary-foreground">
-                Enter ZIP codes
-              </ToggleGroupItem>
               <ToggleGroupItem value="county" className="data-[state=on]:bg-secondary data-[state=on]:text-secondary-foreground">
                 State &amp; county
+              </ToggleGroupItem>
+              <ToggleGroupItem value="manual" className="data-[state=on]:bg-secondary data-[state=on]:text-secondary-foreground">
+                Enter ZIP codes
               </ToggleGroupItem>
             </ToggleGroup>
           </div>
@@ -628,10 +628,9 @@ export function AdvancedSearchPage() {
             </p>
             <Button
               type="button"
-              variant="outline"
-              size="sm"
-              className="shrink-0"
-              aria-expanded={false}
+                  size="sm"
+                  className="shrink-0"
+                  aria-expanded={false}
               aria-controls="county-picker"
               onClick={() => setPickerCollapsed(false)}
             >
@@ -675,13 +674,20 @@ export function AdvancedSearchPage() {
                   <label htmlFor="county-filter" className="sr-only">
                     Filter counties
                   </label>
-                  <Input
-                    id="county-filter"
-                    value={countyFilter}
-                    onChange={(e) => setCountyFilter(e.target.value)}
-                    placeholder="Filter counties"
-                    className="flex-1"
-                  />
+  <div className="relative flex-1">
+  <Search
+  className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+  aria-hidden="true"
+  />
+  <Input
+  id="county-filter"
+  type="search"
+  value={countyFilter}
+  onChange={(e) => setCountyFilter(e.target.value)}
+  placeholder="Filter counties"
+  className="h-10 border-muted-foreground/50 bg-background pl-9 text-base text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-primary/40 dark:bg-background"
+  />
+  </div>
                   <div className="flex gap-2">
                     <Button
                       type="button"
