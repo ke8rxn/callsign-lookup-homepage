@@ -8,7 +8,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: 'KE8RXN Callsign Lookup',
-  description: 'Search amateur radio and GMRS callsigns and operator information',
+  description: 'Search amateur radio, GMRS, and FCC Part 90 Industrial/Business licenses and operator information',
   generator: 'v0.app',
   icons: {
     icon: '/icon.jpg',

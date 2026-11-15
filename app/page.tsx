@@ -1,12 +1,12 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Search, Radio, MapPin, Moon, Sun, Loader2, Download, Users, Menu, SlidersHorizontal } from "lucide-react"
+import { Search, Radio, MapPin, Moon, Sun, Loader2, Download, Users, Menu, SlidersHorizontal, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { RepeaterLookupPage } from "@/components/repeater-lookup-page"
+import { Part90Page } from "@/components/part90/part90-page"
 import { AdvancedSearchPage } from "@/components/advanced-search-page"
 import { ApiDocs } from "@/components/api-docs"
 import {
@@ -38,7 +38,24 @@ export default function CallsignLookup() {
   const [mobileAmateurDialogOpen, setMobileAmateurDialogOpen] = useState(false)
   const [mobileGmrsDialogOpen, setMobileGmrsDialogOpen] = useState(false)
   const [mobileApiDialogOpen, setMobileApiDialogOpen] = useState(false)
-  const [view, setView] = useState<"callsign" | "repeater" | "advanced">("callsign")
+  const [view, setView] = useState<"callsign" | "part90" | "advanced">("callsign")
+
+  useEffect(() => {
+    const syncView = () => {
+      const isPart90 = new URLSearchParams(window.location.search).get("view") === "part90"
+      setView((current) => (isPart90 ? "part90" : current === "part90" ? "callsign" : current))
+    }
+    syncView()
+    window.addEventListener("popstate", syncView)
+    return () => window.removeEventListener("popstate", syncView)
+  }, [])
+
+  const selectView = useCallback((next: "callsign" | "part90" | "advanced") => {
+    setView(next)
+    const url = next === "part90" ? `${window.location.pathname}?view=part90` : window.location.pathname
+    if (next === "part90" && new URLSearchParams(window.location.search).get("view") === "part90") return
+    window.history.replaceState(null, "", url)
+  }, [])
 
   // Fetch DMR ID for a callsign via server-side proxy (avoids CORS issues)
   const fetchDmrId = useCallback(async (amateurCallsign: string): Promise<string | null> => {
@@ -287,10 +304,10 @@ export default function CallsignLookup() {
               onKeyDown={(e) => {
                 if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
                   e.preventDefault()
-                  const order = ["callsign", "advanced", "repeater"] as const
+                  const order = ["callsign", "advanced", "part90"] as const
                   const step = e.key === "ArrowRight" ? 1 : -1
                   const next = order[(order.indexOf(view) + step + order.length) % order.length]
-                  setView(next)
+                  selectView(next)
                   document.getElementById(`tab-${next}`)?.focus()
                 }
               }}
@@ -301,7 +318,7 @@ export default function CallsignLookup() {
                 aria-controls={view === "callsign" ? "panel-callsign" : undefined}
                 aria-selected={view === "callsign"}
                 tabIndex={view === "callsign" ? 0 : -1}
-                onClick={() => setView("callsign")}
+                onClick={() => selectView("callsign")}
                 className={`rounded-md px-2 sm:px-2.5 py-1 text-sm font-medium transition-colors ${
                   view === "callsign"
                     ? "bg-primary text-primary-foreground"
@@ -316,7 +333,7 @@ export default function CallsignLookup() {
                 aria-controls={view === "advanced" ? "panel-advanced" : undefined}
                 aria-selected={view === "advanced"}
                 tabIndex={view === "advanced" ? 0 : -1}
-                onClick={() => setView("advanced")}
+                onClick={() => selectView("advanced")}
                 className={`rounded-md px-2 sm:px-2.5 py-1 text-sm font-medium transition-colors ${
                   view === "advanced"
                     ? "bg-primary text-primary-foreground"
@@ -327,18 +344,18 @@ export default function CallsignLookup() {
               </button>
               <button
                 role="tab"
-                id="tab-repeater"
-                aria-controls={view === "repeater" ? "panel-repeater" : undefined}
-                aria-selected={view === "repeater"}
-                tabIndex={view === "repeater" ? 0 : -1}
-                onClick={() => setView("repeater")}
-                className={`rounded-md px-2 sm:px-2.5 py-1 text-sm font-medium transition-colors ${
-                  view === "repeater"
+                id="tab-part90"
+                aria-controls={view === "part90" ? "panel-part90" : undefined}
+                aria-selected={view === "part90"}
+                tabIndex={view === "part90" ? 0 : -1}
+                onClick={() => selectView("part90")}
+                className={`rounded-md px-2 sm:px-2.5 py-1 text-sm font-medium transition-colors whitespace-nowrap ${
+                  view === "part90"
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                Repeater<span className="hidden sm:inline"> Lookup</span>
+                Part 90<span className="hidden sm:inline"> Search</span>
               </button>
             </div>
           </div>
@@ -668,9 +685,9 @@ export default function CallsignLookup() {
 
       {/* Main Content */}
       <main id="main-content" className="flex-1 flex flex-col">
-        {view === "repeater" ? (
-          <div role="tabpanel" id="panel-repeater" aria-labelledby="tab-repeater" className="flex-1">
-            <RepeaterLookupPage />
+        {view === "part90" ? (
+          <div role="tabpanel" id="panel-part90" aria-labelledby="tab-part90" className="flex-1">
+            <Part90Page />
           </div>
         ) : view === "advanced" ? (
           <div role="tabpanel" id="panel-advanced" aria-labelledby="tab-advanced" className="flex-1">
@@ -752,12 +769,28 @@ export default function CallsignLookup() {
                 variant="outline"
                 className="h-10 gap-2 border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground"
                 onClick={() => {
-                  setView("advanced")
+                  selectView("advanced")
                   window.scrollTo({ top: 0 })
                 }}
               >
                 <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
                 Try Advanced Search
+              </Button>
+            </div>
+
+            <div className="max-w-xl mx-auto mt-3 flex flex-col sm:flex-row items-start sm:items-center justify-start text-left gap-2 sm:gap-3 text-sm md:text-base text-muted-foreground">
+              <span>Looking for business or industrial (Part 90) radio licenses?</span>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 gap-2 border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground"
+                onClick={() => {
+                  selectView("part90")
+                  window.scrollTo({ top: 0 })
+                }}
+              >
+                <Building2 className="h-4 w-4" aria-hidden="true" />
+                Search Part 90 Licenses
               </Button>
             </div>
 
