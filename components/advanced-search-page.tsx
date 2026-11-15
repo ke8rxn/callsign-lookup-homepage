@@ -51,7 +51,7 @@ async function fetchAllDmrIds(callsigns: string[]): Promise<Record<string, strin
 }
 import { type CountyMatcher, isInSelectedCounties } from "@/lib/county-match"
 
-type SearchType = "callsign" | "frn" | "name" | "zipcode"
+type SearchType = "callsign" | "name" | "zipcode" | "dmr" | "frn"
 type ZipMode = "manual" | "county"
 type SortKey = "amateur" | "gmrs" | "name" | "class" | "city" | "state" | "zip" | "frn"
 type ServiceFilter = "all" | "both" | "amateur" | "gmrs" | "dmr"
@@ -91,15 +91,6 @@ const SEARCH_TYPES: Record<SearchType, SearchTypeConfig> = {
     validate: (v) => /^[A-Z0-9]{3,7}$/i.test(v),
     invalidMessage: "Callsigns must be 3-7 letters and numbers.",
   },
-  frn: {
-    label: "FRN",
-    placeholder: "0036850956",
-    hint: "Enter FCC Registration Numbers, separated by commas, spaces, or new lines. Up to 25 at a time.",
-    maxQueries: 25,
-    split: (input) => input.split(/[,;\s]+/),
-    validate: (v) => /^\d{1,10}$/.test(v),
-    invalidMessage: "FRNs must be up to 10 digits.",
-  },
   name: {
     label: "Name",
     placeholder: "Smith, John\nDoe, Jane",
@@ -117,6 +108,24 @@ const SEARCH_TYPES: Record<SearchType, SearchTypeConfig> = {
     split: (input) => input.split(/[,;\s]+/),
     validate: (v) => /^\d{5}$/.test(v),
     invalidMessage: "ZIP codes must be 5 digits.",
+  },
+  dmr: {
+    label: "DMR ID",
+    placeholder: "3180116, 3122796",
+    hint: "Enter RadioID DMR IDs (6-7 digits), separated by commas, spaces, or new lines. Up to 25 at a time.",
+    maxQueries: 25,
+    split: (input) => input.split(/[,;\s]+/),
+    validate: (v) => /^\d{6,7}$/.test(v),
+    invalidMessage: "DMR IDs must be 6 or 7 digits.",
+  },
+  frn: {
+    label: "FRN",
+    placeholder: "0036850956",
+    hint: "Enter FCC Registration Numbers, separated by commas, spaces, or new lines. Up to 25 at a time.",
+    maxQueries: 25,
+    split: (input) => input.split(/[,;\s]+/),
+    validate: (v) => /^\d{1,10}$/.test(v),
+    invalidMessage: "FRNs must be up to 10 digits.",
   },
 }
 
@@ -320,7 +329,7 @@ export function AdvancedSearchPage() {
         ),
       )
       if (values.length === 0) {
-        setInputError(`Enter at least one ${config.label.toLowerCase()}.`)
+        setInputError(`Enter at least one ${/[A-Z]{2}/.test(config.label) ? config.label : config.label.toLowerCase()}.`)
         return
       }
       if (values.length > config.maxQueries) {
@@ -334,7 +343,12 @@ export function AdvancedSearchPage() {
       }
       setInputError(null)
       setCountyMatch(null)
-      const summaryNoun = searchType === "zipcode" ? "ZIP code" : config.label.toLowerCase()
+      const summaryNoun =
+      searchType === "zipcode"
+        ? "ZIP code"
+        : /[A-Z]{2}/.test(config.label)
+          ? config.label
+          : config.label.toLowerCase()
     runQueries(searchType, values, `${values.length} ${summaryNoun}${values.length === 1 ? "" : searchType === "zipcode" ? "s" : " queries"}`)
     },
     [config, input, runQueries, searchType],
@@ -602,7 +616,7 @@ export function AdvancedSearchPage() {
       <div className="text-center mb-6 md:mb-8">
         <h2 className="text-2xl md:text-5xl font-bold text-foreground mb-2 md:mb-4 text-balance">Advanced Search</h2>
         <p className="text-muted-foreground text-sm md:text-xl max-w-2xl mx-auto text-pretty">
-          Look up FCC amateur and GMRS licenses by callsign, FRN, name, or location (ZIP code or state and county), one at a time or in bulk.
+          Look up FCC amateur and GMRS licenses by callsign, name, location (ZIP code or state and county), DMR ID, or FRN, one at a time or in bulk.
         </p>
         <p className="mt-3 text-sm text-muted-foreground max-w-2xl mx-auto text-left text-pretty">
           Only active FCC amateur radio and GMRS licenses are searched. Expired, cancelled, and terminated licenses are not included.
@@ -626,7 +640,7 @@ export function AdvancedSearchPage() {
               setPendingZips(null)
             }}
             aria-labelledby="search-type-label"
-            className="grid w-full grid-cols-2 sm:grid-cols-4"
+            className="grid w-full grid-cols-3 sm:grid-cols-5"
           >
             {(Object.keys(SEARCH_TYPES) as SearchType[]).map((type) => (
               <ToggleGroupItem
@@ -687,7 +701,7 @@ export function AdvancedSearchPage() {
               }}
               placeholder={config.placeholder}
               rows={3}
-              aria-describedby="advanced-search-hint"
+              aria-describedby={inputError ? "advanced-search-hint advanced-search-error" : "advanced-search-hint"}
               aria-invalid={inputError ? true : undefined}
               className="font-mono"
             />
@@ -783,6 +797,11 @@ export function AdvancedSearchPage() {
   placeholder="Filter counties"
   className="h-10 border-muted-foreground/50 bg-background pl-9 text-base text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-primary/40 dark:bg-background"
   />
+  <p className="sr-only" role="status">
+    {countyFilter
+      ? `${visibleCounties.length} ${visibleCounties.length === 1 ? "county" : "counties"} shown, including selected counties.`
+      : ""}
+  </p>
   </div>
                   <div className="flex gap-2">
                     <Button
@@ -895,13 +914,20 @@ export function AdvancedSearchPage() {
         )}
 
         {inputError && (
-          <p className="text-sm text-destructive" role="alert">
+          <p id="advanced-search-error" className="text-sm text-destructive" role="alert">
             {inputError}
           </p>
         )}
       </div>
 
-      <div className="max-w-6xl mx-auto mt-6" aria-live="polite" aria-busy={isSearching}>
+      <div className="max-w-6xl mx-auto mt-6">
+        <p className="sr-only" role="status">
+          {!isSearching && hasSearched
+            ? results.length === 0
+              ? `No licenses found for ${lastSearchLabel}.`
+              : `Showing ${filteredResults.length.toLocaleString()} of ${rows.length.toLocaleString()} licensees.`
+            : ""}
+        </p>
         {isSearching && (
           <div className="mx-auto flex max-w-md flex-col items-center gap-3 py-8" role="status">
             <p className="flex items-center gap-2 text-muted-foreground">
