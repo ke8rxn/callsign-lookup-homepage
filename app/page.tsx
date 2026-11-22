@@ -767,7 +767,7 @@ export default function CallsignLookup() {
               <Button
                 type="button"
                 variant="outline"
-                className="h-10 gap-2 border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground"
+                className="h-10 gap-2 border-primary/50 text-primary hover:border-primary hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/15 dark:hover:text-primary"
                 onClick={() => {
                   selectView("advanced")
                   window.scrollTo({ top: 0 })
@@ -783,7 +783,7 @@ export default function CallsignLookup() {
               <Button
                 type="button"
                 variant="outline"
-                className="h-10 gap-2 border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground"
+                className="h-10 gap-2 border-primary/50 text-primary hover:border-primary hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/15 dark:hover:text-primary"
                 onClick={() => {
                   selectView("part90")
                   window.scrollTo({ top: 0 })
