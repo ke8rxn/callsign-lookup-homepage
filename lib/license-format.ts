@@ -44,95 +44,60 @@ export function formatLicenseClass(classAbbr: string | null): string {
 
 // Format concatenated street address: "3869NordicAve" -> "3869 Nordic Ave"
 export function formatStreet(street: string): string {
-  if (!street) return "Street not available"
-  
-  // If street is only digits, it's a PO Box (FCC strips "PO BOX" prefix)
-  if (/^\d+$/.test(street.trim())) {
-    return `PO Box ${street.trim()}`
-  }
-  
-  // If street already has spaces, return as-is (properly formatted)
-  if (street.includes(" ")) return street
-  
-  // Directions that appear at the end (check these first, before suffixes)
-  const directions = ["NW", "NE", "SW", "SE"]
-  const singleDirections = ["N", "S", "E", "W"]
-  
-  let formatted = street
+  let s = (street ?? "").trim()
+  if (!s) return "Street not available"
+
+  // FCC data strips the "PO BOX" prefix, so a bare number is a PO Box.
+  if (/^\d+$/.test(s)) return `PO Box ${s}`
+  s = s.replace(/^(?:P\.?\s*O\.?\s*Box|PostOfficeBox|Box)\s*#?\s*(\d[\w-]*)/i, "PO Box $1")
+
+  // Matching is case-sensitive on purpose: a case-insensitive "se"/"st" would
+  // split real words ("Melrose" -> "Melro SE", "Forest" -> "Fore St").
   let trailingDirection = ""
-  
-  // Step 1: Extract direction from end first (before any other processing)
-  for (const dir of directions) {
-    const regex = new RegExp(`(${dir})$`, "i")
-    if (regex.test(formatted)) {
-      trailingDirection = dir.toUpperCase()
-      formatted = formatted.replace(regex, "")
-      break
-    }
+  const dirMatch = s.match(/(?<=[a-z\d\s])(NW|NE|SW|SE)$/) ?? s.match(/(?<=[a-z\s])([NSEW])$/)
+  if (dirMatch) {
+    trailingDirection = dirMatch[1]
+    s = s.slice(0, -trailingDirection.length)
   }
-  if (!trailingDirection) {
-    // Check single directions only if no multi-char direction found
-    for (const dir of singleDirections) {
-      const regex = new RegExp(`([a-z])(${dir})$`, "")
-      if (regex.test(formatted)) {
-        trailingDirection = dir
-        formatted = formatted.replace(new RegExp(`${dir}$`), "")
-        break
-      }
-    }
-  }
-  
-  // Step 2: Handle ordinal street names (e.g., "1241140thAve" -> "1241 140th Ave")
-  // Look for ordinal pattern: digits followed by st/nd/rd/th, then an UPPERCASE letter (new word)
-  // This prevents matching "th" in words like "Thornapple"
-  const ordinalMatch = formatted.match(/^(\d+?)(\d{1,3})(st|nd|rd|th)([A-Z].*)$/i)
-  if (ordinalMatch) {
-    const [, houseNum, streetNum, ordinalSuffix, rest] = ordinalMatch
-    // Only treat as ordinal if the suffix is followed by uppercase (new word like "Ave")
-    if (/^[A-Z]/.test(rest)) {
-      formatted = `${houseNum} ${streetNum}${ordinalSuffix.toLowerCase()}${rest}`
-    } else {
-      // Not actually an ordinal, just add space after house number
-      formatted = formatted.replace(/^(\d+)([A-Za-z])/, "$1 $2")
-    }
+
+  s = s.replace(/([A-Za-z0-9])#/g, "$1 #")
+
+  // House number, keeping an ordinal street together: "1241140thAve" -> "1241 140thAve"
+  const ordinal = s.match(/^(\d+?)(\d{1,3}(?:st|nd|rd|th))(?=[A-Z])/)
+  if (ordinal) {
+    s = `${ordinal[1]} ${s.slice(ordinal[0].length - ordinal[2].length)}`
   } else {
-    // Step 3: Add space between number and first letter (only if no ordinal)
-    formatted = formatted.replace(/^(\d+)([A-Za-z])/, "$1 $2")
+    s = s.replace(/^(\d+)(?=[A-Za-z])/, "$1 ")
   }
-  
-  // Step 4: Find and isolate street suffix
-  // These must match as complete suffix words, not within other words
-  // Order matters: check longer suffixes first to avoid partial matches
-  const suffixPatterns = [
-    "Avenue", "Boulevard", "Parkway", "Highway", "Terrace", "Circle", "Street", "Drive", "Place", "Trail", "Court", "Lane", "Road", "Loop", "Way",
-    "Blvd", "Pkwy", "Hwy", "Ter", "Cir", "Ave", "Trl", "Ct", "Ln", "Rd", "St", "Dr", "Pl"
+
+  // Leading directional after the house number: "789 N1stSt" -> "789 N 1stSt"
+  s = s.replace(/^(\d+\s+)(NE|NW|SE|SW|[NSEW])(?=\d|[A-Z][a-z])/, "$1$2 ")
+
+  s = s.replace(/\b(\d+(?:st|nd|rd|th))(?=[A-Z])/g, "$1 ")
+
+  const streetTypes = [
+    "Boulevard", "Crossing", "Highway", "Parkway", "Terrace", "Avenue", "Circle", "Street", "Square",
+    "Court", "Drive", "Place", "Plaza", "Trail", "Lane", "Loop", "Pike", "Road", "Way", "Row",
+    "Blvd", "Pkwy", "Xing", "Ave", "Cir", "Hwy", "Plz", "Ter", "Trl", "Ct", "Dr", "Ln", "Pl", "Rd", "Sq", "St",
   ]
-  
-  for (const suffix of suffixPatterns) {
-    // Match suffix at end of string (after direction removed) that follows lowercase
-    // The suffix must be at the end or followed by nothing (since we stripped direction)
-    const regex = new RegExp(`([a-z])(${suffix})$`, "i")
-    const match = formatted.match(regex)
-    if (match) {
-      // Capitalize suffix properly
-      const properSuffix = suffix.charAt(0).toUpperCase() + suffix.slice(1).toLowerCase()
-      formatted = formatted.replace(regex, `$1 ${properSuffix}`)
+  for (const type of streetTypes) {
+    const re = new RegExp(`([a-z0-9])(${type})$`)
+    if (re.test(s)) {
+      s = s.replace(re, "$1 $2")
       break
     }
   }
-  
-  // Step 5: Now split remaining concatenated words
-  // Only split on lowercase-to-uppercase transitions
-  formatted = formatted.replace(/([a-z])([A-Z])/g, "$1 $2")
-  
-  // Step 6: Add space between "Suite" and the number (e.g., "Suite110" -> "Suite 110")
-  formatted = formatted.replace(/\b(Suite)(\d)/gi, "$1 $2")
-  
-  // Step 7: Add back the trailing direction
-  if (trailingDirection) {
-    formatted = formatted + " " + trailingDirection
-  }
-  
-  // Clean up extra spaces
-  return formatted.trim().replace(/\s+/g, " ")
+
+  s = s.replace(/([a-z])([A-Z])/g, "$1 $2")
+  s = s.replace(/\b(Ma?c) (?=[A-Z][a-z])/g, "$1")
+  s = s.replace(/\b(Hwy|Highway|Route|Rte|Rt)(\d)/g, "$1 $2")
+
+  // Units: "Apt#10", "Suite110", "Ste 5" -> "Apt 10", "Suite 110", "Ste 5"
+  s = s.replace(
+    /\b(Apt|Apartment|Suite|Ste|Unit|Rm|Room|Bldg|Lot|Trlr)\.?\s*#?\s*(\d[\w-]*)/g,
+    "$1 $2",
+  )
+
+  if (trailingDirection) s = `${s} ${trailingDirection}`
+  return s.replace(/\s+/g, " ").trim()
 }
