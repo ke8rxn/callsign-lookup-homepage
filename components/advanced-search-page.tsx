@@ -8,6 +8,7 @@ import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
+  CircleCheck,
   Download,
   Filter,
   Loader2,
@@ -66,16 +67,51 @@ interface GeocodeResponse {
   summary: { requested: number; matched: number; unmatched: number; failed: number }
 }
 
-async function fetchGeocodedCounties(addresses: GeocodeAddress[]): Promise<GeocodeResponse> {
-  const response = await fetch("/api/geocode-county", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      addresses: addresses.map(({ street, city, state, zip }) => ({ street, city, state, zip })),
-    }),
-  })
-  if (!response.ok) throw new Error("Geocoding failed")
-  return response.json()
+// Batches sent a few at a time so the border-address progress bar can advance.
+const GEOCODE_CHUNK_SIZE = 200
+const GEOCODE_CONCURRENCY = 3
+
+async function fetchGeocodedCounties(
+  addresses: GeocodeAddress[],
+  onProgress: (done: number) => void,
+  signal: AbortSignal,
+): Promise<GeocodeResponse> {
+  const chunks: GeocodeAddress[][] = []
+  for (let i = 0; i < addresses.length; i += GEOCODE_CHUNK_SIZE) {
+    chunks.push(addresses.slice(i, i + GEOCODE_CHUNK_SIZE))
+  }
+
+  const results: GeocodedCounties = {}
+  const summary = { requested: 0, matched: 0, unmatched: 0, failed: 0 }
+  let done = 0
+  let next = 0
+  onProgress(0)
+
+  const worker = async () => {
+    while (next < chunks.length) {
+      const chunk = chunks[next++]
+      const response = await fetch("/api/geocode-county", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          addresses: chunk.map(({ street, city, state, zip }) => ({ street, city, state, zip })),
+        }),
+        signal,
+      })
+      if (!response.ok) throw new Error("Geocoding failed")
+      const data: GeocodeResponse = await response.json()
+      Object.assign(results, data.results)
+      summary.requested += data.summary.requested
+      summary.matched += data.summary.matched
+      summary.unmatched += data.summary.unmatched
+      summary.failed += data.summary.failed
+      done += chunk.length
+      onProgress(done)
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(GEOCODE_CONCURRENCY, chunks.length) }, worker))
+  return { results, summary }
 }
 
 type SearchType = "callsign" | "name" | "zipcode" | "dmr" | "frn"
@@ -270,6 +306,9 @@ export function AdvancedSearchPage() {
   const [truncated, setTruncated] = useState<string[]>([])
   const [lastSearchLabel, setLastSearchLabel] = useState("")
   const abortRef = useRef<AbortController | null>(null)
+  const [geocodeProgress, setGeocodeProgress] = useState(0)
+  const [geocodeCancelled, setGeocodeCancelled] = useState(false)
+  const geocodeAbortRef = useRef<AbortController | null>(null)
 
   // Result table controls
   const [filterText, setFilterText] = useState("")
@@ -284,9 +323,12 @@ export function AdvancedSearchPage() {
     abortRef.current?.abort()
     const controller = new AbortController()
     abortRef.current = controller
+    geocodeAbortRef.current?.abort()
 
     setIsSearching(true)
     setHasSearched(true)
+    setGeocodeCancelled(false)
+    setGeocodeProgress(0)
     setResults([])
     setNotFound([])
     setFailed([])
@@ -341,6 +383,8 @@ export function AdvancedSearchPage() {
 
   const cancelSearch = useCallback(() => {
     abortRef.current?.abort()
+    geocodeAbortRef.current?.abort()
+    setGeocodeCancelled(true)
     setIsSearching(false)
   }, [])
 
@@ -496,15 +540,22 @@ export function AdvancedSearchPage() {
     return Array.from(unique.values()).slice(0, GEOCODE_LIMIT)
   }, [results, countyMatch, isSearching])
 
-  const {
-    data: geocoded,
-    isLoading: geocoding,
-    error: geocodeError,
-  } = useSWR(
-    geocodeTargets.length ? ["county-geocode", geocodeTargets.map((a) => a.key).join("\n")] : null,
-    () => fetchGeocodedCounties(geocodeTargets),
+  const { data: geocoded, error: geocodeError } = useSWR(
+    geocodeTargets.length && !geocodeCancelled
+      ? ["county-geocode", geocodeTargets.map((a) => a.key).join("\n")]
+      : null,
+    () => {
+      geocodeAbortRef.current?.abort()
+      const controller = new AbortController()
+      geocodeAbortRef.current = controller
+      return fetchGeocodedCounties(geocodeTargets, setGeocodeProgress, controller.signal)
+    },
     { revalidateOnFocus: false, shouldRetryOnError: false },
   )
+
+  const checkingBorders =
+    !isSearching && !!countyMatch && geocodeTargets.length > 0 && !geocodeCancelled && !geocoded && !geocodeError
+  const busy = isSearching || checkingBorders
 
   const outsideIds = useMemo(() => {
     const ids = new Set<string>()
@@ -704,8 +755,9 @@ export function AdvancedSearchPage() {
             value={searchType}
             onValueChange={(v) => {
               if (!v || v === searchType) return
-              abortRef.current?.abort()
-              setSearchType(v as SearchType)
+    abortRef.current?.abort()
+    geocodeAbortRef.current?.abort()
+    setSearchType(v as SearchType)
               setInput("")
               setInputError(null)
               setZipMode("county")
@@ -1023,31 +1075,79 @@ export function AdvancedSearchPage() {
 
       <div className="max-w-6xl mx-auto mt-6">
         <p className="sr-only" role="status">
-          {!isSearching && hasSearched
-            ? results.length === 0
-              ? `No licenses found for ${lastSearchLabel}.`
-              : `Showing ${filteredResults.length.toLocaleString()} of ${rows.length.toLocaleString()} licensees.`
-            : ""}
+          {busy
+            ? isSearching
+              ? countyMatch
+                ? "Searching ZIP codes…"
+                : "Searching…"
+              : `Checking ${geocodeTargets.length.toLocaleString()} addresses near county lines…`
+            : hasSearched
+              ? results.length === 0
+                ? `No licenses found for ${lastSearchLabel}.`
+                : `Showing ${filteredResults.length.toLocaleString()} of ${rows.length.toLocaleString()} licensees.`
+              : ""}
         </p>
-        {isSearching && (
-          <div className="mx-auto flex max-w-md flex-col items-center gap-3 py-8" role="status">
-            <p className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
-              Searching {progress.done} of {progress.total}...
-            </p>
-            <Progress
-              value={progress.total ? (progress.done / progress.total) * 100 : 0}
-              aria-label="Search progress"
-              className="w-full"
-            />
-            <Button type="button" variant="ghost" size="sm" onClick={cancelSearch} className="gap-1">
+        {busy && (
+          <div className="mx-auto flex w-full max-w-md flex-col gap-6 py-8">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <span className="flex items-center gap-2 font-medium text-foreground">
+                  {isSearching ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden="true" />
+                  ) : (
+                    <CircleCheck className="h-4 w-4 text-primary" aria-hidden="true" />
+                  )}
+                  {countyMatch ? "ZIP codes searched" : "Searched"}
+                </span>
+                <span className="font-mono tabular-nums text-muted-foreground">
+                  {progress.done.toLocaleString()} / {progress.total.toLocaleString()}
+                </span>
+              </div>
+              <Progress
+                value={progress.total ? (progress.done / progress.total) * 100 : 0}
+                aria-label={countyMatch ? "ZIP code search progress" : "Search progress"}
+                className="w-full"
+              />
+            </div>
+
+            {countyMatch && (
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <span
+                    className={`flex items-center gap-2 font-medium ${checkingBorders ? "text-foreground" : "text-muted-foreground"}`}
+                  >
+                    {checkingBorders && (
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden="true" />
+                    )}
+                    Addresses near county lines checked
+                  </span>
+                  <span className="font-mono tabular-nums text-muted-foreground">
+                    {checkingBorders
+                      ? `${geocodeProgress.toLocaleString()} / ${geocodeTargets.length.toLocaleString()}`
+                      : "Waiting"}
+                  </span>
+                </div>
+                <Progress
+                  value={checkingBorders && geocodeTargets.length ? (geocodeProgress / geocodeTargets.length) * 100 : 0}
+                  aria-label="County line address check progress"
+                  className="w-full"
+                />
+                <p className="text-xs text-muted-foreground text-pretty">
+                  {checkingBorders
+                    ? "Checking addresses against U.S. Census address data."
+                    : "Starts after the ZIP code search finishes."}
+                </p>
+              </div>
+            )}
+
+            <Button type="button" variant="ghost" size="sm" onClick={cancelSearch} className="gap-1 self-center">
               <X className="h-4 w-4" aria-hidden="true" />
               Cancel
             </Button>
           </div>
         )}
 
-        {!isSearching && hasSearched && (
+        {!busy && hasSearched && (
           <div className="flex flex-col gap-3">
             {(notFound.length > 0 || failed.length > 0 || truncated.length > 0) && (
               <div className="flex flex-col gap-1 rounded-lg border border-border bg-card p-3 text-sm">
@@ -1175,8 +1275,8 @@ export function AdvancedSearchPage() {
 
                 {countyMatch && geocodeTargets.length > 0 && (
                   <p role="status" className="text-sm text-muted-foreground text-pretty">
-                    {geocoding
-                      ? `Checking ${geocodeTargets.length.toLocaleString()} address${geocodeTargets.length === 1 ? "" : "es"} near county lines against U.S. Census address data…`
+                    {geocodeCancelled
+                      ? "The county line check was cancelled, so addresses near county lines were placed by city and ZIP code."
                       : geocodeError
                         ? "Couldn't reach the U.S. Census Geocoder, so addresses near county lines were placed by city and ZIP code."
                         : geocoded
