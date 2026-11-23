@@ -50,7 +50,33 @@ async function fetchAllDmrIds(callsigns: string[]): Promise<Record<string, strin
   }
   return merged
 }
-import { type CountyMatcher, isInSelectedCounties } from "@/lib/county-match"
+import {
+  type CountyMatcher,
+  type GeocodeAddress,
+  type GeocodedCounties,
+  isInSelectedCountiesHybrid,
+  needsGeocode,
+  toGeocodeAddress,
+} from "@/lib/county-match"
+
+const GEOCODE_LIMIT = 1000
+
+interface GeocodeResponse {
+  results: GeocodedCounties
+  summary: { requested: number; matched: number; unmatched: number; failed: number }
+}
+
+async function fetchGeocodedCounties(addresses: GeocodeAddress[]): Promise<GeocodeResponse> {
+  const response = await fetch("/api/geocode-county", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      addresses: addresses.map(({ street, city, state, zip }) => ({ street, city, state, zip })),
+    }),
+  })
+  if (!response.ok) throw new Error("Geocoding failed")
+  return response.json()
+}
 
 type SearchType = "callsign" | "name" | "zipcode" | "dmr" | "frn"
 type ZipMode = "manual" | "county"
@@ -459,14 +485,35 @@ export function AdvancedSearchPage() {
     runQueries("zipcode", zips, `${zipSummary} in ${countyLabel}, ${stateName}`)
   }, [fetchCountyZips, runQueries, selectedCounties, selectedCountyNames, stateAbbr])
 
+  const geocodeTargets = useMemo(() => {
+    if (!countyMatch || isSearching) return []
+    const unique = new Map<string, GeocodeAddress>()
+    for (const r of results) {
+      if (!needsGeocode(r, countyMatch.matcher)) continue
+      const address = toGeocodeAddress(r)
+      if (address) unique.set(address.key, address)
+    }
+    return Array.from(unique.values()).slice(0, GEOCODE_LIMIT)
+  }, [results, countyMatch, isSearching])
+
+  const {
+    data: geocoded,
+    isLoading: geocoding,
+    error: geocodeError,
+  } = useSWR(
+    geocodeTargets.length ? ["county-geocode", geocodeTargets.map((a) => a.key).join("\n")] : null,
+    () => fetchGeocodedCounties(geocodeTargets),
+    { revalidateOnFocus: false, shouldRetryOnError: false },
+  )
+
   const outsideIds = useMemo(() => {
     const ids = new Set<string>()
     if (!countyMatch) return ids
     for (const r of results) {
-      if (!isInSelectedCounties(r, countyMatch.matcher)) ids.add(r.usid)
+      if (!isInSelectedCountiesHybrid(r, countyMatch.matcher, geocoded?.results)) ids.add(r.usid)
     }
     return ids
-  }, [results, countyMatch])
+  }, [results, countyMatch, geocoded])
 
   const rows = useMemo(() => groupLicensees(results, outsideIds), [results, outsideIds])
   const outsideRowCount = useMemo(() => rows.filter((r) => r.outside).length, [rows])
@@ -1126,14 +1173,26 @@ export function AdvancedSearchPage() {
                   </div>
                 </div>
 
+                {countyMatch && geocodeTargets.length > 0 && (
+                  <p role="status" className="text-sm text-muted-foreground text-pretty">
+                    {geocoding
+                      ? `Checking ${geocodeTargets.length.toLocaleString()} address${geocodeTargets.length === 1 ? "" : "es"} near county lines against U.S. Census address data…`
+                      : geocodeError
+                        ? "Couldn't reach the U.S. Census Geocoder, so addresses near county lines were placed by city and ZIP code."
+                        : geocoded
+                          ? `Checked ${geocoded.summary.requested.toLocaleString()} address${geocoded.summary.requested === 1 ? "" : "es"} near county lines against U.S. Census address data. ${geocoded.summary.matched.toLocaleString()} matched; the rest were placed by city and ZIP code.`
+                          : null}
+                  </p>
+                )}
+
                 {countyMatch && outsideRowCount > 0 && (
                   <div className="flex flex-col gap-2 rounded-lg border border-border bg-card p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-muted-foreground text-pretty">
                       <span className="font-medium text-foreground">
                         {outsideRowCount.toLocaleString()} licensee{outsideRowCount === 1 ? "" : "s"}
                       </span>{" "}
-                      {outsideRowCount === 1 ? "has" : "have"} a city outside {countyMatch.label}, from ZIP codes that
-                      cross county lines.{" "}
+                      {outsideRowCount === 1 ? "has an address" : "have addresses"} outside {countyMatch.label}, from
+                      ZIP codes that cross county lines.{" "}
                       {showOutside ? "They are marked below." : "They are hidden."}
                     </p>
                     <Button

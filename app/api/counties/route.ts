@@ -147,11 +147,21 @@ export async function GET(request: Request) {
       }
 
       const cities: Record<string, boolean> = {}
+      const splitCities: string[] = []
       for (const [name, fipsSet] of places.get(state.fips) ?? []) {
-        cities[name] = Array.from(fipsSet).some((f) => selected.has(f))
+        const placeCounties = Array.from(fipsSet)
+        const inside = placeCounties.some((f) => selected.has(f))
+        cities[name] = inside
+        if (inside && placeCounties.some((f) => !selected.has(f))) splitCities.push(name)
       }
 
-      const match: CountyMatcher = { state: state.abbr, cities, zipShare }
+      const match: CountyMatcher = {
+        state: state.abbr,
+        counties: Array.from(selected),
+        cities,
+        splitCities,
+        zipShare,
+      }
       return NextResponse.json({ zips: Array.from(zips).sort(), match })
     }
 
