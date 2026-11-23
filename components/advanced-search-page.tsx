@@ -67,8 +67,8 @@ interface GeocodeResponse {
   summary: { requested: number; matched: number; unmatched: number; failed: number }
 }
 
-// Small batches sent a few at a time so the border-address progress bar can advance.
-const GEOCODE_CHUNK_SIZE = 50
+// Batches sent a few at a time so the border-address progress bar can advance.
+const GEOCODE_CHUNK_SIZE = 200
 const GEOCODE_CONCURRENCY = 3
 
 async function fetchGeocodedCounties(
